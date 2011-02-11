@@ -1,0 +1,23 @@
+#!/bin/sh -e
+
+case "$1" in
+    (remove|deconfigure)
+	update-alternatives --remove zsh /bin/zsh4
+	update-alternatives --remove rzsh /bin/zsh4
+	update-alternatives --remove ksh /bin/zsh4
+        rmdir /usr/local/share/zsh/site-functions || true
+        rmdir /usr/local/share/zsh || true
+    ;;
+    (upgrade)
+    ;;
+
+    (failed-upgrade)
+    ;;
+
+    (*)
+	echo "prerm called with unknown argument \`$1'" >&2
+	exit 0
+    ;;
+esac
+
+exit 0

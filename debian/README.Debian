@@ -1,0 +1,4 @@
+This version of zsh has been compiled with support for maildir
+folders in MAIL and MAILPATH.
+
+Clint Adams <schizo@debian.org>
