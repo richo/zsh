@@ -1,0 +1,16 @@
+This patch is included upstream, see:
+    <http://www.zsh.org/mla/workers/2010/msg00992.html>
+
+Index: pkg-zsh/Completion/Unix/Command/_fuser
+===================================================================
+--- pkg-zsh.orig/Completion/Unix/Command/_fuser	2011-02-11 16:42:14.000000000 +0100
++++ pkg-zsh/Completion/Unix/Command/_fuser	2011-02-11 16:42:16.000000000 +0100
+@@ -3,7 +3,7 @@
+ local -a args arg1
+ typeset -A opt_args
+ 
+-if _pick_variant -c $words[1] psmisc=psmisc unix -V; then
++if _pick_variant -c $words[1] psmisc='(#i)psmisc' unix -V; then
+ 
+   (( $+functions[_fuser_services] )) ||
+   _fuser_services() {
