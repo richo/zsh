@@ -79,11 +79,8 @@ build-debug: build
 
 stamp-configure:
 	$(checkdir)
-ifneq (zsh-beta,$(package))
 	touch stamp-h.in configure
-else
 	chmod 755 configure
-endif
 	mkdir -p obj/testhome
 ifeq (zsh-beta,$(package))
 	test -f Config/version.mk.orig || cp Config/version.mk Config/version.mk.orig
