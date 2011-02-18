@@ -247,7 +247,7 @@ endif
 	          debian/tmp/usr/share/$(package)/functions/Misc/zkbd \
 	          debian/tmp/usr/share/$(package)/functions/Misc/zcalc \
 
-	$(INSTALL_FILE) Etc/ChangeLog* README META-FAQ Doc/zsh.texi Etc/BUGS Etc/CONTRIBUTORS Etc/FAQ FEATURES \
+	$(INSTALL_FILE) Etc/ChangeLog* README META-FAQ Doc/zsh.texi Etc/BUGS Etc/CONTRIBUTORS FEATURES \
 		Etc/FTP-README MACHINES NEWS Etc/TODO Etc/completion-style-guide Etc/zsh-development-guide Functions/README.zftp debian/tmp/usr/share/doc/$(package)/
 	$(INSTALL_FILE) ChangeLog debian/tmp/usr/share/doc/$(package)/changelog
 	chmod -R u+rw,go=rX debian/tmp/usr/share/doc
