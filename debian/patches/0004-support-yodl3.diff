@@ -1,0 +1,40 @@
+This patch is included upstream.
+    <http://www.zsh.org/mla/workers/2011/msg00074.html>
+
+Index: pkg-zsh/Config/defs.mk.in
+===================================================================
+--- pkg-zsh.orig/Config/defs.mk.in	2011-02-21 21:50:36.000000000 +0100
++++ pkg-zsh/Config/defs.mk.in	2011-02-21 21:51:33.000000000 +0100
+@@ -73,9 +73,9 @@
+ # utilities
+ AWK             = @AWK@
+ ANSI2KNR        = @ANSI2KNR@
+-YODL            = @YODL@
+-YODL2TXT        = $(YODL)2txt
+-YODL2HTML       = $(YODL)2html
++YODL            = @YODL@ @YODL_OPTIONS@
++YODL2TXT        = @YODL@2txt
++YODL2HTML       = @YODL@2html
+ PDFETEX		= @PDFETEX@
+ TEXI2PDF	= @TEXI2PDF@
+ 
+Index: pkg-zsh/configure.ac
+===================================================================
+--- pkg-zsh.orig/configure.ac	2011-02-21 21:50:42.000000000 +0100
++++ pkg-zsh/configure.ac	2011-02-21 21:51:33.000000000 +0100
+@@ -539,6 +539,15 @@
+ AC_PROG_LN                  dnl Check for working ln, for "make install"
+ AC_PROG_EGREP               dnl sets $EGREP to grep -E or egrep
+ AC_CHECK_PROGS([YODL], [yodl], [: yodl])
++
++YODL_OPTIONS=''
++if test "x$ac_cv_prog_YODL" = xyodl; then
++    case `yodl --version` in
++      *"version 3."*) YODL_OPTIONS='-L' ;;
++    esac
++fi
++AC_SUBST(YODL_OPTIONS)
++
+ AC_CHECK_PROGS([PDFETEX], [pdfetex], [: pdfetex])
+ AC_CHECK_PROGS([TEXI2PDF], [texi2pdf], [])
+ AC_CHECK_PROGS([TEXI2HTML], [texi2html], [])
