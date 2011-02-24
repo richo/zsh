@@ -3,3 +3,4 @@
 0002-vcs_info-svn-detection.diff
 0003-regex-match-crash-fix.diff
 0004-support-yodl3.diff
+0005-lexer-fix.diff
