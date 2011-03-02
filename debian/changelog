@@ -1,3 +1,25 @@
+zsh (4.3.11-4) unstable; urgency=low
+
+  [ Frank Terbeck ]
+  * [78ab02ff] Initial `debian/' import
+  * [bfb94ad4] Adding _fuser fix from upstream
+  * [344bea55] Adding at2quilt script
+  * [4e83fa72] Adding autotools related patches
+  * [0bfbee7f] Make sure a configure script is executable and stamp.h.in exists
+  * [56cc95c7] Installation of Etc/FAQ currently fails for the debian package
+  * [545b40ea] Fix colors function to work with ksh_arrays (Closes: #613162)
+  * [6219ec1f] Fix detection of svn repositories in vcs_info (Closes: #611175)
+  * [983b6365] Adding patch to fix segfault with regular expression matching
+  * [6ced6e2c] Adding patch to support yodl3
+  * [6267bebc] Refreshing autotools patches for yodl3 fixes
+  * [40086130] Fix endless loop due to lexer bug (Closes: #353863)
+
+  [ Michael Prokop ]
+  * [e8d69775] README.Debian: Add instructions how to use the zsh-dbg package.
+  * [ed6737b2] Add yodl to Build-Depends and sort Build-Depends while at it.
+
+ -- Frank Terbeck <ft@bewatermyfriend.org>  Wed, 02 Mar 2011 18:57:37 +0100
+
 zsh (4.3.11-3) unstable; urgency=low
 
   * [6b5d568] Update Vcs-Git and Vcs-Browser control headers.
