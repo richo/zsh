@@ -93,12 +93,6 @@ create_patch() {
         printf 'Target file `%s'\'' does not exist. Giving up.\n' "${file}"
         return 1
     fi
-    if [ -e "${series}" ]; then
-        got_series=1
-        cp "${series}" series.old
-    else
-        got_series=0
-    fi
 
     cat << __EOF__ > "${patch}"
 Patch to generate \`${file}'.
@@ -115,19 +109,13 @@ __EOF__
 
     if ! grep -q '^'"$1"'$' "${series}"; then
         printf '`%s'\'' missing in `%s'\''. Adding.\n' "$1" "${series}"
-        printf '%s\n' "$1" > "${series}"
-        if [ "${got_series}" = 1 ]; then
-            cat series.old >> "${series}"
-        fi
-    fi
-    if [ "${got_series}" = 1 ]; then
-        rm series.old
+        printf '%s\n' "$1" >> "${series}"
     fi
     return 0
 }
 
-create_patch deb_0001_at_config_h_in.diff config.h.in || exit 1
 create_patch deb_0000_at_configure.diff configure || exit 1
+create_patch deb_0001_at_config_h_in.diff config.h.in || exit 1
 
 # Clean up manually applied patches again, if any.
 if [ "x${PATCHES}" != x ]; then
