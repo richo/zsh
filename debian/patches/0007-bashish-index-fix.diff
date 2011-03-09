@@ -1,0 +1,42 @@
+Crash fix from upstream:
+  <http://www.zsh.org/mla/workers/2011/msg00076.html>
+
+
+Index: pkg-zsh/Src/subst.c
+===================================================================
+--- pkg-zsh.orig/Src/subst.c	2011-03-09 10:25:56.000000000 +0100
++++ pkg-zsh/Src/subst.c	2011-03-09 10:25:59.000000000 +0100
+@@ -2814,12 +2814,14 @@
+ 			zerr("invalid length: %s", check_offset);
+ 			return NULL;
+ 		    }
+-		    length = mathevali(check_offset);
+-		    if (errflag)
+-			return NULL;
+-		    if (length < (zlong)0) {
+-			zerr("invalid length: %s", check_offset);
+-			return NULL;
++                    if (check_offset) {
++			length = mathevali(check_offset);
++			if (errflag)
++			    return NULL;
++			if (length < (zlong)0) {
++			    zerr("invalid length: %s", check_offset);
++			    return NULL;
++			}
+ 		    }
+ 		}
+ 		if (horrible_offset_hack) {
+Index: pkg-zsh/Test/D04parameter.ztst
+===================================================================
+--- pkg-zsh.orig/Test/D04parameter.ztst	2011-03-09 10:25:56.000000000 +0100
++++ pkg-zsh/Test/D04parameter.ztst	2011-03-09 10:25:59.000000000 +0100
+@@ -1405,3 +1405,8 @@
+    printf "%n" '[0]'
+ 1:Regression test for identifier test
+ ?(eval):1: not an identifier: [0]
++
++   str=rts
++   print ${str:0:}
++1:Regression test for missing length after offset
++?(eval):2: unrecognized modifier
