@@ -73,7 +73,7 @@ quilt push -a || exit 1
 
 quilt new "${quiltpatch}" || exit 1
 
-diffstat -l "${gitpatch}" | while IFS= read -r file; do
+diffstat -l -p1 "${gitpatch}" | while IFS= read -r file; do
     quilt add "${file}" || exit 1
 done
 
