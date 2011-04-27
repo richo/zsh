@@ -1,3 +1,15 @@
+zsh (4.3.11-5) unstable; urgency=low
+
+  * [d6e29c2b] Fix for false isident() behaviour
+  * [de811a44] Fix for crash in incorrect bash-like index usage
+  * [dbaa0788] debian/at2quilt: Append debian patches at the end of series
+  * [2a6ba3c7] Add `debian/patch2quilt' script
+  * [e5e18221] Add org-mode file that describes the current team workflow
+  * [8e3a365c] patch2quilt: Stop stripping pathnames too much
+  * [adb5ab78] Fix screen completion for serial devices (Closes: #623522)
+
+ -- Frank Terbeck <ft@bewatermyfriend.org>  Wed, 27 Apr 2011 20:08:50 +0200
+
 zsh (4.3.11-4) unstable; urgency=low
 
   [ Frank Terbeck ]
