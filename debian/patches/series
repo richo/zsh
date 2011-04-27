@@ -6,3 +6,4 @@
 0005-lexer-fix.diff
 0006-isident-false-positive.diff
 0007-bashish-index-fix.diff
+0008-fix-screen-completion.diff
