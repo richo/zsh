@@ -294,26 +294,28 @@
     committed to the git repository to allow for review.
 
 
-*** Updating autotools files whenever input files are changing
+**** Updating autotools files whenever input files are changing
 
-    Sometimes, it will be necessary to backport changes to autotools
-    input files (such as `configure.ac'). As with any other change,
-    such a task should be done by adding a patch to the packages quilt
-    queue.
+     Sometimes, it will be necessary to backport changes to autotools
+     input files (such as `configure.ac'). As with any other change,
+     such a task should be done by adding a patch to the packages
+     quilt queue.
 
-    Obviously, if an input file changes, the autotools related patches
-    for the package need to be updated. Again, the `at2quilt' script
-    from the `debian/' subdirectory helps. The only difference to the
-    way it was used before is that you need to tell the script which
-    patches in the patch-queue are relevant for autotools. Say there
-    is a patch `0017-autotools-fix-gnu-hurd.diff' which alters
-    `configure.ac', here is what would need to be done:
+     Obviously, if an input file changes, the autotools related
+     patches for the package need to be updated. Again, the `at2quilt'
+     script from the `debian/' subdirectory helps. The only difference
+     to the way it was used before is that you need to tell the script
+     which patches in the patch-queue are relevant for autotools. Say
+     there is a patch `0017-autotools-fix-gnu-hurd.diff' which alters
+     `configure.ac', here is what would need to be done:
 
-    % ./debian/at2quilt debian/patches/0017-autotools-fix-gnu-hurd.diff
+#+BEGIN_EXAMPLE
+     % ./debian/at2quilt debian/patches/0017-autotools-fix-gnu-hurd.diff
+#+END_EXAMPLE
 
-    If there is more than one patch `at2quilt' need to consider, list
-    all of them in the order in which `quilt' would apply them (if in
-    doubt, ask "quilt series").
+     If there is more than one patch `at2quilt' need to consider, list
+     all of them in the order in which `quilt' would apply them (if in
+     doubt, ask "quilt series").
 
 
 *** Fix outstanding bug
