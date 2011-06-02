@@ -340,7 +340,7 @@ binary-arch-dev:	checkroot build
 		       debian/tmp-dev/DEBIAN
 	$(INSTALL_FILE) obj/Src/*.epro obj/Src/sigcount.h \
 	                Src/hashtable.h Src/prototypes.h \
-			Src/signals.h Src/system.h Src/zsh.h Src/ztype.h \
+			Src/signals.h Src/zsh_system.h Src/zsh.h Src/ztype.h \
 			debian/tmp-dev/usr/include/$(package)
 	$(INSTALL_FILE) Src/makepro.awk debian/tmp-dev/usr/share/$(package)-dev
 	$(INSTALL_FILE) Config/aczshoot.m4 debian/tmp-dev/usr/share/aclocal/$(package)oot.m4
