@@ -1,5 +1,6 @@
 zsh (4.3.12-1) UNRELEASED; urgency=low
 
+  * New upstream release (Closes: #627046)
   * [b495ba1e] Removing upstream patches due to new release
   * [f575f568] Add urcl script for changelog updates at upstream releases
 
