@@ -877,7 +877,7 @@ gettok(void)
 		dbparens = 1;
 		return DINPAR;
 	    }
-	    if (incmdpos) {
+	    if (incmdpos || (isset(SHGLOB) && !isset(KSHGLOB))) {
 		len = 0;
 		bptr = tokstr = (char *) hcalloc(bsiz = 32);
 		switch (cmd_or_math(CS_MATH)) {
@@ -1141,6 +1141,8 @@ gettokstr(int c, int sub)
 		    break;
 		if (incasepat && !len)
 		    return INPAR;
+		if (!isset(KSHGLOB) && len)
+		    goto brk;
 	    }
 	    if (!in_brace_param) {
 		if (!sub) {
@@ -1753,7 +1755,7 @@ parse_subst_string(char *s)
 	     * additional memory should come off the heap or
 	     * otherwise.  So we cheat by copying the unquoted string
 	     * into place, unless it's too long.  That's not the
-	     * normal case, but I'm worried there are are pathological
+	     * normal case, but I'm worried there are pathological
 	     * cases with converting metafied multibyte strings.
 	     * If someone can prove there aren't I will be very happy.
 	     */
@@ -1823,7 +1825,7 @@ exalias(void)
 	    int zp = lexflags;
 
 	    gotword();
-	    if (zp == 1 && !lexflags) {
+	    if ((zp & LEXFLAGS_ZLE) && !lexflags) {
 		if (zshlextext == copy)
 		    zshlextext = tokstr;
 		return 0;

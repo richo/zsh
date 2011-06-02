@@ -1111,7 +1111,7 @@ zglob(LinkList list, LinkNode np, int nountok)
     struct globdata saved;		/* saved glob state              */
     int nobareglob = !isset(BAREGLOBQUAL);
 
-    if (unset(GLOBOPT) || !haswilds(ostr)) {
+    if (unset(GLOBOPT) || !haswilds(ostr) || unset(EXECOPT)) {
 	if (!nountok)
 	    untokenize(ostr);
 	return;
@@ -2000,7 +2000,7 @@ hasbraces(char *str)
 
 /**/
 int
-xpandredir(struct redir *fn, LinkList tab)
+xpandredir(struct redir *fn, LinkList redirtab)
 {
     char *nam;
     struct redir *ff;
@@ -2048,7 +2048,7 @@ xpandredir(struct redir *fn, LinkList tab)
 	    ff = (struct redir *) zhalloc(sizeof *ff);
 	    *ff = *fn;
 	    ff->name = nam;
-	    addlinknode(tab, ff);
+	    addlinknode(redirtab, ff);
 	    ret = 1;
 	}
     }

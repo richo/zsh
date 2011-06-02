@@ -26,7 +26,7 @@
 #     expand-or-complete, expand-or-complete-prefix, list-choices,
 #     menu-complete, menu-expand-or-complete, or reverse-menu-complete).
 #     This creates a widget behaving like <style> so that the
-#     completions are chosen as given in the the rest of the file,
+#     completions are chosen as given in the rest of the file,
 #     rather than by the context.  The widget has the same name as
 #     the autoload file and can be bound using bindkey in the normal way.
 #
@@ -160,7 +160,9 @@ _comp_options=(
 # have a valid stdin descriptor (zle closes it before calling widgets)
 # and don't get confused by user's ZERR trap handlers.
 
-typeset -g _comp_setup='setopt localoptions localtraps ${_comp_options[@]};
+typeset -g _comp_setup='local -A _comp_caller_options;
+             _comp_caller_options=(${(kv)options});
+             setopt localoptions localtraps ${_comp_options[@]};
              local IFS=$'\'\ \\t\\r\\n\\0\''
              exec </dev/null;
              trap - ZERR
@@ -229,7 +231,7 @@ comppostfuncs=()
 #   delete the definitions for the command names `bar' and `baz'
 
 compdef() {
-  local opt autol type func delete new i ret=0 cmd svc
+  local opt autol type func delete eval new i ret=0 cmd svc
   local -a match mbegin mend
 
   emulate -L zsh
@@ -242,7 +244,7 @@ compdef() {
     return 1
   fi
 
-  while getopts "anpPkKd" opt; do
+  while getopts "anpPkKde" opt; do
     case "$opt" in
     a)    autol=yes;;
     n)    new=yes;;
@@ -263,6 +265,7 @@ compdef() {
 	  fi
 	  ;;
     d) delete=yes;;
+    e) eval=yes;;
     esac
   done
   shift OPTIND-1
@@ -276,7 +279,7 @@ compdef() {
     # If the first word contains an equal sign, all words must contain one
     # and we define which services to use for the commands.
 
-    if [[ "$1" = *\=* ]]; then
+    if [[ -z "$eval" ]] && [[ "$1" = *\=* ]]; then
       while (( $# )); do
         if [[ "$1" = *\=* ]]; then
 	  cmd="${1%%\=*}"

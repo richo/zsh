@@ -405,6 +405,11 @@ do_completion(UNUSED(Hookdef dummy), Compldat dat)
 	} else if (nmatches == 1 || (nmatches > 1 && !diffmatches)) {
 	    /* Only one match. */
 	    Cmgroup m = amatches;
+#ifdef ZSH_HEAP_DEBUG
+	    if (memory_validate(m->heap_id)) {
+		HEAP_ERROR(m->heap_id);
+	    }
+#endif
 
 	    while (!m->mcount)
 		m = m->next;
@@ -509,6 +514,11 @@ after_complete(UNUSED(Hookdef dummy), int *dat)
 	int ret;
 
 	cdat.matches = amatches;
+#ifdef ZSH_HEAP_DEBUG
+	if (memory_validate(cdat.matches->heap_id)) {
+	    HEAP_ERROR(cdat.matches->heap_id);
+	}
+#endif
 	cdat.num = nmatches;
 	cdat.nmesg = nmessages;
 	cdat.cur = NULL;
@@ -987,6 +997,11 @@ makecomplist(char *s, int incmd, int lst)
 	    diffmatches = odm;
 	    validlist = 1;
 	    amatches = lastmatches;
+#ifdef ZSH_HEAP_DEBUG
+	    if (memory_validate(amatches->heap_id)) {
+		HEAP_ERROR(amatches->heap_id);
+	    }
+#endif
 	    lmatches = lastlmatches;
 	    if (pmatches) {
 		freematches(pmatches, 1);
@@ -1395,8 +1410,6 @@ set_comp_sep(void)
     LinkNode n;
     /* Save word position */
     int owe = we, owb = wb;
-    /* Save cursor position and line length */
-    int ocs, oll;
     /*
      * Values of word beginning and end and cursor after subtractions
      * due to separators.   I think these are indexes into zlemetaline,
@@ -1481,8 +1494,7 @@ set_comp_sep(void)
 
     /* Put the string in the lexer buffer and call the lexer to *
      * get the words we have to expand.                        */
-    ocs = zlemetacs;
-    oll = zlemetall;
+    zle_save_positions();
     ol = zlemetaline;
     addedx = 1;
     noerrs = 1;
@@ -1639,9 +1651,8 @@ set_comp_sep(void)
     lexrestore();
     wb = owb;
     we = owe;
-    zlemetacs = ocs;
     zlemetaline = ol;
-    zlemetall = oll;
+    zle_restore_positions();
     if (cur < 0 || i < 1)
 	return 1;
     owb = offs;
@@ -2333,7 +2344,7 @@ addmatches(Cadata dat, char **argv)
 		dat->pre = dupstring(dat->pre);
 	    if (dat->suf)
 		dat->suf = dupstring(dat->suf);
-	    if (!dat->prpre && (dat->prpre = oppre)) {
+	    if (!dat->prpre && (dat->prpre = dupstring(oppre))) {
 		singsub(&(dat->prpre));
 		untokenize(dat->prpre);
 	    } else
@@ -2963,6 +2974,11 @@ begcmgroup(char *n, int flags)
 	Cmgroup p = amatches;
 
 	while (p) {
+#ifdef ZSH_HEAP_DEBUG
+	    if (memory_validate(p->heap_id)) {
+		HEAP_ERROR(p->heap_id);
+	    }
+#endif
 	    if (p->name &&
 		flags == (p->flags & (CGF_NOSORT|CGF_UNIQALL|CGF_UNIQCON)) &&
 		!strcmp(n, p->name)) {
@@ -2979,6 +2995,9 @@ begcmgroup(char *n, int flags)
 	}
     }
     mgroup = (Cmgroup) zhalloc(sizeof(struct cmgroup));
+#ifdef ZSH_HEAP_DEBUG
+    mgroup->heap_id = last_heap_id;
+#endif
     mgroup->name = dupstring(n);
     mgroup->lcount = mgroup->llcount = mgroup->mcount = mgroup->ecount = 
 	mgroup->ccount = 0;
@@ -3299,6 +3318,11 @@ permmatches(int last)
 	fi = 1;
     }
     while (g) {
+#ifdef ZSH_HEAP_DEBUG
+	if (memory_validate(g->heap_id)) {
+	    HEAP_ERROR(g->heap_id);
+	}
+#endif
 	if (fi != ofi || !g->perm || g->new) {
 	    if (fi)
 		/* We have no matches, try ignoring fignore. */
@@ -3327,6 +3351,9 @@ permmatches(int last)
 		diffmatches = 1;
 
 	    n = (Cmgroup) zshcalloc(sizeof(struct cmgroup));
+#ifdef ZSH_HEAP_DEBUG
+	    n->heap_id = HEAPID_PERMANENT;
+#endif
 
 	    if (g->perm) {
 		g->perm->next = NULL;

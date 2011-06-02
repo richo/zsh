@@ -303,7 +303,7 @@ ihgetc(void)
 	/* If the result is a bangchar which came from history or alias  *
 	 * expansion, we treat it as an escaped bangchar, unless history *
 	 * is disabled. If stophist == 1 it only means that history is   *
-	 * temporarily disabled by a !" which won't appear in in the     *
+	 * temporarily disabled by a !" which won't appear in the        *
 	 * history, so we still have an escaped bang. stophist > 1 if    *
 	 * history is disabled with NOBANGHIST or by someone else (e.g.  *
 	 * when the lexer scans single quoted text).                     */
@@ -2406,6 +2406,13 @@ readhistfile(char *fn, int err, int readflags)
 			    uselex = 0;
 			    break;
 			}
+		    } else if (!strcmp(word, ";") && strpfx(";;", pt)) {
+			/*
+			 * Don't get confused between a semicolon that's
+			 * probably really a newline and a double
+			 * semicolon that's terminating a case.
+			 */
+			continue;
 		    }
 		    words[nwordpos++] = pt - start;
 		    pt += strlen(word);

@@ -447,7 +447,7 @@ directly.
 findex(compdef)
 cindex(completion system, adding definitions)
 startitem()
-xitem(tt(compdef) [ tt(-an) ] var(function names...) [ tt(-[pP]) var(patterns...) [ tt(-N) var(names...) ] ])
+xitem(tt(compdef) [ tt(-ane) ] var(function names...) [ tt(-[pP]) var(patterns...) [ tt(-N) var(names...) ] ])
 xitem(tt(compdef -d) var(names...))
 xitem(tt(compdef -k) [ tt(-an) ] var(function style key-sequences...))
 item(tt(compdef -K) [ tt(-an) ] var(function name style key-sequences ...))(
@@ -460,11 +460,14 @@ defined by `var(cmd1)tt(=)var(service)' lines in tt(#compdef) files, as
 described above.  The argument for var(cmd) will be completed in the
 same way as var(service).
 
-The var(function) argument may alternatively be a string containing any
-shell code.  The string will be executed using the tt(eval) builtin
-command to generate completions.  This provides a way of avoiding having
-to define a new completion function.  For example, to complete
-files ending in `tt(.h)' as arguments to the command tt(foo):
+The var(function) argument may alternatively be a string containing
+almost any shell code.  If the string contains an equal sign, the above
+will take precedence.  The option tt(-e) may be used to specify the first
+argument is to be evaluated as shell code even if it contains an equal
+sign.  The string will be executed using the tt(eval) builtin command to
+generate completions.  This provides a way of avoiding having to define
+a new completion function.  For example, to complete files ending in
+`tt(.h)' as arguments to the command tt(foo):
 
 example(compdef '_files -g "*.h"' foo)
 
@@ -783,7 +786,9 @@ for names of device special files
 )
 kindex(directories, completion tag)
 item(tt(directories))(
-for names of directories
+for names of directories DASH()- tt(local-directories) is used instead
+when completing arguments of tt(cd) and related builtin commands when
+the tt(cdpath) array is set
 )
 kindex(directory-stack, completion tag)
 item(tt(directory-stack))(
@@ -876,7 +881,8 @@ kindex(local-directories, completion tag)
 item(tt(local-directories))(
 for names of directories that are subdirectories of the current working
 directory when completing arguments of tt(cd) and related builtin
-commands (compare tt(path-directories))
+commands (compare tt(path-directories)) DASH()- when the tt(cdpath)
+array is unset, tt(directories) is used instead
 )
 kindex(manuals, completion tag)
 item(tt(manuals))(
@@ -1931,7 +1937,7 @@ changing the foreground background colour, are also available, as is the form
 (or, with a numeric argument, some other) width.
 
 After deleting this prompt the variable tt(LISTPROMPT) should be unset for
-the the removal to take effect.
+the removal to take effect.
 )
 kindex(list-rows-first, completion style)
 item(tt(list-rows-first))(
@@ -2298,13 +2304,29 @@ The default value for this style is `false'.
 )
 kindex(prefix-needed, completion style)
 item(tt(prefix-needed))(
-This, too, is used for matches with a common prefix.  If it is set to
-`true' this common prefix must be typed by the user to generate the
-matches.  In the case of command options, this means that the initial
-`tt(-)', `tt(+)', or `tt(-)tt(-)' must be typed explicitly before option
-names will be completed.
+This style is also relevant for matches with a common prefix.  If it is
+set to `true' this common prefix must be typed by the user to generate
+the matches.
 
-The default value for this style is `true'.
+The style is applicable to the tt(options), tt(signals), tt(jobs),
+tt(functions), and tt(parameters) completion tags.
+
+For command options, this means that the initial `tt(-)', `tt(+)', or
+`tt(-)tt(-)' must be typed explicitly before option names will be
+completed.
+
+For signals, an initial `tt(-)' is required before signal names will
+be completed.
+
+For jobs, an initial `tt(%)' is required before job names will be
+completed.
+
+For function and parameter names, an initial `tt(_)' or `tt(.)' is
+required before function or parameter names starting with those
+characters will be completed.
+
+The default value for this style is `false' for tt(function) and
+tt(parameter) completions, and  `true' otherwise.
 )
 kindex(preserve-prefix, completion style)
 item(tt(preserve-prefix))(
@@ -2646,7 +2668,7 @@ most commands.
 )
 kindex(urls, completion style)
 item(tt(urls))(
-This is used together with the the tt(urls) tag by
+This is used together with the tt(urls) tag by
 functions completing URLs.
 
 If the value consists of more than one string, or if the only string
@@ -2667,11 +2689,11 @@ descend as deep as necessary.
 For example, 
 
 example(zstyle ':completion:*' urls ~/.urls
-mkdir -p ~/.urls/ftp/ftp.zsh.org/pub/development
+mkdir -p ~/.urls/ftp/ftp.zsh.org/pub
 )
 
 allows completion of all the components of the URL
-tt(ftp://ftp.zsh.org/pub/development) after suitable commands such as
+tt(ftp://ftp.zsh.org/pub) after suitable commands such as
 `tt(netscape)' or `tt(lynx)'.  Note, however, that access methods and
 files are completed separately, so if the tt(hosts) style is set hosts
 can be completed without reference to the tt(urls) style.
@@ -2716,17 +2738,6 @@ can be completed as well.  This style is not use in any context
 where the tt(hosts) style is set; note also it must be set before
 the cache of host names is generated (typically the first completion
 attempt).
-)
-kindex(use-perl, completion style)
-item(tt(use-perl))(
-Various parts of the function system use awk to extract words from
-files or command output as it is universally available.  However, many
-versions of awk have arbitrary limits on the size of input.  If this
-style is set, perl will be used instead.  This is almost always
-preferable if perl is available on your system.
-
-Currently this is only used in completions for `make', but it may be
-extended depending on authorial frustration.
 )
 kindex(users, completion style)
 item(tt(users))(
@@ -3400,7 +3411,7 @@ tt(compadd) with additional options which will take precedence over
 those generated by tt(_all_labels).
 )
 findex(_alternative)
-item(tt(_alternative) [ tt(-C) var(name) ] var(spec) ...)(
+item(tt(_alternative) [ tt(-O) var(name) ] [ tt(-C) var(name) ] var(spec) ...)(
 This function is useful in simple cases where multiple tags are available.
 Essentially it implements a loop like the one described for the tt(_tags)
 function below.
@@ -3426,6 +3437,10 @@ Like tt(_arguments), this function uses tt(_all_labels) to execute
 the actions, which will loop over all sets of tags.  Special handling is
 only required if there is an additional valid tag, for example inside a
 function called from tt(_alternative).
+
+The option `tt(-O) var(name)' is used in the same way as by the
+tt(_arguments) function.  In other words, the elements of the var(name)
+array will be passed to tt(compadd) when executing an action.
 
 Like tt(_tags) this function supports the tt(-C) option to give a
 different name for the argument context field.

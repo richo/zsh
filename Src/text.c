@@ -785,8 +785,7 @@ gettext2(Estate state)
 			    taddstr(" ");
 			    taddstr(ecgetstr(state, EC_NODUP, NULL));
 			    if (ctype == COND_STREQ ||
-				ctype == COND_STRNEQ ||
-				ctype == COND_REGEX)
+				ctype == COND_STRNEQ)
 				state->pc++;
 			} else {
 			    /* Unary test: `-f foo' etc. */ 
@@ -894,13 +893,13 @@ getredirs(LinkList redirs)
 		    taddstr(f->here_terminator);
 		    taddpending(f->name, f->munged_here_terminator);
 		} else {
+		    int fnamelen, sav;
 		    taddstr(fstr[REDIR_HERESTR]);
 		    /*
 		     * Just a quick and dirty representation.
 		     * Remove a terminating newline, if any.
 		     */
-		    int fnamelen = strlen(f->name);
-		    int sav;
+		    fnamelen = strlen(f->name);
 		    if (fnamelen > 0 && f->name[fnamelen-1] == '\n') {
 			sav = 1;
 			f->name[fnamelen-1] = '\0';

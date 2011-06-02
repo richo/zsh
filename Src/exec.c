@@ -181,7 +181,15 @@ struct execstack *exstack;
 /**/
 mod_export Funcstack funcstack;
 
-#define execerr() if (!forked) { lastval = 1; goto done; } else _exit(1)
+#define execerr()				\
+    do {					\
+	if (!forked) {				\
+	    redir_err = lastval = 1;		\
+	    goto done;				\
+	} else {				\
+	    _exit(1);				\
+	}					\
+    } while (0)
 
 static int doneps4;
 static char *STTYval;
@@ -2312,11 +2320,11 @@ execcmd(Estate state, int input, int output, int how, int last1)
     struct multio *mfds[10];
     char *text;
     int save[10];
-    int fil, dfil, is_cursh, type, do_exec = 0, i, htok = 0;
+    int fil, dfil, is_cursh, type, do_exec = 0, redir_err = 0, i, htok = 0;
     int nullexec = 0, assign = 0, forked = 0;
     int is_shfunc = 0, is_builtin = 0, is_exec = 0, use_defpath = 0;
     /* Various flags to the command. */
-    int cflags = 0, checked = 0, oautocont = -1;
+    int cflags = 0, orig_cflags = 0, checked = 0, oautocont = -1;
     LinkList redir;
     wordcode code;
     Wordcode beg = state->pc, varspc;
@@ -2408,6 +2416,9 @@ execcmd(Estate state, int input, int output, int how, int last1)
 		checked = !(cflags & BINF_BUILTIN);
 		break;
 	    }
+	    orig_cflags |= cflags;
+	    cflags &= ~BINF_BUILTIN & ~BINF_COMMAND;
+	    cflags |= hn->flags;
 	    if (!(hn->flags & BINF_PREFIX)) {
 		is_builtin = 1;
 
@@ -2417,8 +2428,6 @@ execcmd(Estate state, int input, int output, int how, int last1)
 		assign = (hn->flags & BINF_MAGICEQUALS);
 		break;
 	    }
-	    cflags &= ~BINF_BUILTIN & ~BINF_COMMAND;
-	    cflags |= hn->flags;
 	    checked = 0;
 	    if ((cflags & BINF_COMMAND) && nextnode(firstnode(args))) {
 		/* check for options to command builtin */
@@ -2748,7 +2757,7 @@ execcmd(Estate state, int input, int output, int how, int last1)
      * A `fake exec' is possible if we have all the following conditions:     *
      * 1) last1 flag is 1.  This indicates that the current shell will not    *
      *    be needed after the current command.  This is typically the case    *
-     *    when when the command is the last stage in a subshell, or is the    *
+     *    when the command is the last stage in a subshell, or is the         *
      *    last command after the option `-c'.                                 *
      * 2) We don't have any traps set.                                        *
      * 3) We don't have any files to delete.                                  *
@@ -2999,10 +3008,11 @@ execcmd(Estate state, int input, int output, int how, int last1)
 		if (!checkclobberparam(fn))
 		    fil = -1;
 		else if (fn->fd2 > 9 &&
-		    ((fdtable[fn->fd2] != FDT_UNUSED &&
-		      fdtable[fn->fd2] != FDT_EXTERNAL) ||
-		     fn->fd2 == coprocin ||
-		     fn->fd2 == coprocout)) {
+			 (fn->fd2 > max_zsh_fd ||
+			  (fdtable[fn->fd2] != FDT_UNUSED &&
+			   fdtable[fn->fd2] != FDT_EXTERNAL) ||
+			  fn->fd2 == coprocin ||
+			  fn->fd2 == coprocout)) {
 		    fil = -1;
 		    errno = EBADF;
 		} else {
@@ -3069,7 +3079,6 @@ execcmd(Estate state, int input, int output, int how, int last1)
 	if (mfds[i] && mfds[i]->ct >= 2)
 	    closemn(mfds, i);
 
-    xtrerr = stderr;
     if (nullexec) {
 	if (nullexec == 1) {
 	    /*
@@ -3218,10 +3227,14 @@ execcmd(Estate state, int input, int output, int how, int last1)
 			_exit(1);
 		}
 		closem(FDT_INTERNAL);
-		if (coprocin)
+		if (coprocin != -1) {
 		    zclose(coprocin);
-		if (coprocout)
+		    coprocin = -1;
+		}
+		if (coprocout != -1) {
 		    zclose(coprocout);
+		    coprocout = -1;
+		}
 #ifdef HAVE_GETRLIMIT
 		if (!forked)
 		    setlimits(NULL);
@@ -3285,6 +3298,25 @@ execcmd(Estate state, int input, int output, int how, int last1)
     fixfds(save);
 
  done:
+    if (isset(POSIXBUILTINS) &&
+	(cflags & (BINF_PSPECIAL|BINF_EXEC)) &&
+	!(orig_cflags & BINF_COMMAND)) {
+	/*
+	 * For POSIX-compatible behaviour with special
+	 * builtins (including exec which we don't usually
+	 * classify as a builtin) we treat all errors as fatal.
+	 * The "command" builtin is not special so resets this behaviour.
+	 */
+	if (redir_err || errflag) {
+	    if (!isset(INTERACTIVE)) {
+		if (forked)
+		    _exit(1);
+		else
+		    exit(1);
+	    }
+	    errflag = 1;
+	}
+    }
     if (newxtrerr) {
 	fil = fileno(newxtrerr);
 	fclose(newxtrerr);
@@ -4227,6 +4259,7 @@ execshfunc(Shfunc shf, LinkList args)
     cmdsp = 0;
     if ((osfc = sfcontext) == SFC_NONE)
 	sfcontext = SFC_DIRECT;
+    xtrerr = stderr;
     doshfunc(shf, args, 0);
     sfcontext = osfc;
     free(cmdstack);
@@ -4365,7 +4398,7 @@ loadautofn(Shfunc shf, int fksh, int autol)
 mod_export int
 doshfunc(Shfunc shfunc, LinkList doshargs, int noreturnval)
 {
-    char **tab, **x, *oargv0;
+    char **pptab, **x, *oargv0;
     int oldzoptind, oldlastval, oldoptcind, oldnumpipestats, ret;
     int *oldpipestats = NULL;
     char saveopts[OPT_SIZE], *oldscriptname = scriptname;
@@ -4399,7 +4432,7 @@ doshfunc(Shfunc shfunc, LinkList doshargs, int noreturnval)
 
     starttrapscope();
 
-    tab = pparams;
+    pptab = pparams;
     if (!(flags & PM_UNDEFINED))
 	scriptname = dupstring(name);
     oldzoptind = zoptind;
@@ -4515,7 +4548,7 @@ doshfunc(Shfunc shfunc, LinkList doshargs, int noreturnval)
 	zsfree(argzero);
 	argzero = oargv0;
     }
-    pparams = tab;
+    pparams = pptab;
     optcind = oldoptcind;
     zoptind = oldzoptind;
     scriptname = oldscriptname;

@@ -8,6 +8,7 @@ _apachectl
 _apm
 _arp
 _arping
+_at
 _attr
 _awk
 _baz
@@ -77,6 +78,7 @@ _global
 _gnu_generic
 _gnupod
 _gnutls
+_go
 _gpg
 _gphoto2
 _gprof
@@ -94,6 +96,7 @@ _ifconfig
 _iftop
 _imagemagick
 _init_d
+_initctl
 _ip
 _irssi
 _ispell
@@ -137,6 +140,8 @@ _ncftp
 _netcat
 _nice
 _nmap
+_notmuch
+_npm
 _nslookup
 _osc
 _pack
@@ -146,6 +151,7 @@ _pbm
 _perforce
 _perl
 _perldoc
+_pgrep
 _php
 _pine
 _ping
@@ -206,6 +212,7 @@ _tardy
 _tcpdump
 _tcptraceroute
 _telnet
+_tex
 _texinfo
 _tidy
 _tiff
@@ -222,6 +229,7 @@ _unace
 _uname
 _unexpand
 _uniq
+_unison
 _units
 _user_admin
 _uzbl

@@ -12,14 +12,14 @@ _bash_complete() {
   (( COMP_CWORD = CURRENT - 1))
   COMP_WORDS=( $words )
   BASH_VERSINFO=( 2 05b 0 1 release )
-  
+
   savejobstates=( ${(kv)jobstates} )
   savejobtexts=( ${(kv)jobtexts} )
-  
+
   [[ ${argv[${argv[(I)nospace]:-0}-1]} = -o ]] && suf=( -S '' )
- 
+
   matches=( ${(f)"$(compgen $@)"} )
-  
+
   if [[ -n $matches ]]; then
     if [[ ${argv[${argv[(I)filenames]:-0}-1]} = -o ]]; then
       compset -P '*/' && matches=( ${matches##*/} )
@@ -41,11 +41,18 @@ _bash_complete() {
   return ret
 }
 
+_compgen_opt_words() {
+  typeset -a words
+  words=( ${~=1} )
+  local find="$2"
+  results=(${(M)words[@]:#$find*})
+}
+
 compgen() {
-  local opts prefix suffix job OPTARG OPTIND ret=1 
+  local opts prefix suffix job OPTARG OPTIND ret=1
   local -a name res results jids
   local -A shortopts
-  
+
   emulate -L sh
   setopt kshglob noshglob braceexpand nokshautoload
 
@@ -120,7 +127,13 @@ compgen() {
       ;;
       F)
         COMPREPLY=()
-	$OPTARG "${words[0]}" "${words[CURRENT-1]}" "${words[CURRENT-2]}"
+        (){
+          set -- "${words[0]}" "${words[CURRENT-1]}" "${words[CURRENT-2]}"
+          # There may be more things we need to add to this typeset to
+          # protect bash functions from compsys special variable names
+          typeset -h words
+          $OPTARG "$@"
+        }
 	results+=( "${COMPREPLY[@]}" )
       ;;
       G)
@@ -128,7 +141,7 @@ compgen() {
         results+=( ${~OPTARG} )
 	unsetopt nullglob
       ;;
-      W) eval "results+=( $OPTARG )" ;;
+      W) _compgen_opt_words "$OPTARG" "${@[-1]}" ;;
       C) results+=( $(eval $OPTARG) ) ;;
       P) prefix="$OPTARG" ;;
       S) suffix="$OPTARG" ;;

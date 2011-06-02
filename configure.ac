@@ -105,6 +105,18 @@ AC_HELP_STRING([--enable-zsh-secure-free], [turn on error checking for free()]),
   AC_DEFINE(ZSH_SECURE_FREE)
 fi])
 
+dnl Do you want to debug zsh heap allocation?
+dnl Does not depend on zsh-mem.
+ifdef([zsh-heap-debug],[undefine([zsh-heap-debug])])dnl
+AH_TEMPLATE([ZSH_HEAP_DEBUG],
+[Define to 1 if you want to turn on error checking for heap allocation.])
+AC_ARG_ENABLE(zsh-heap-debug,
+AC_HELP_STRING([--enable-zsh-heap-debug],
+[turn on error checking for heap allocation]),
+[if test x$enableval = xyes; then
+  AC_DEFINE(ZSH_HEAP_DEBUG)
+fi])
+
 dnl Do you want debugging information on internal hash tables.
 dnl This turns on the `hashinfo' builtin command.
 ifdef([zsh-hash-debug],[undefine([zsh-hash-debug])])dnl
@@ -276,6 +288,16 @@ else
   FUNCTIONS_SUBDIRS=no
 fi
 
+ifdef([additionalfpath],[undefine([additionalfpath])])dnl
+AC_ARG_ENABLE(additional-fpath,
+AC_HELP_STRING([--enable-additional-fpath=DIR], [add directories to default function path]),
+[if test x$enableval = xyes; then
+  additionalfpath=""
+else
+  additionalfpath="${enableval}"
+fi], [additionalfpath=""])
+
+AC_SUBST(additionalfpath)dnl
 AC_SUBST(fndir)dnl
 AC_SUBST(sitefndir)dnl
 AC_SUBST(FUNCTIONS_SUBDIRS)dnl
@@ -539,6 +561,15 @@ AC_PROG_AWK                 dnl Check for mawk,gawk,nawk, then awk.
 AC_PROG_LN                  dnl Check for working ln, for "make install"
 AC_PROG_EGREP               dnl sets $EGREP to grep -E or egrep
 AC_CHECK_PROGS([YODL], [yodl], [: yodl])
+
+YODL_OPTIONS=''
+if test "x$ac_cv_prog_YODL" = xyodl; then
+    case `yodl --version` in
+      *"version 3."*) YODL_OPTIONS='-L' ;;
+    esac
+fi
+AC_SUBST(YODL_OPTIONS)
+
 AC_CHECK_PROGS([PDFETEX], [pdfetex], [: pdfetex])
 AC_CHECK_PROGS([TEXI2PDF], [texi2pdf], [])
 AC_CHECK_PROGS([TEXI2HTML], [texi2html], [])
@@ -983,7 +1014,8 @@ dnl <sys/types.h> and <signal.h>.  Others might need
 dnl to be added.
 AC_CACHE_CHECK(for sigset_t, zsh_cv_type_sigset_t,
 [AC_TRY_COMPILE(
-[#include <sys/types.h>
+[#define _POSIX_C_SOURCE 200809L
+#include <sys/types.h>
 #include <signal.h>], [sigset_t tempsigset;],
   zsh_cv_type_sigset_t=yes, zsh_cv_type_sigset_t=no)])
 AH_TEMPLATE([sigset_t],
@@ -1005,6 +1037,7 @@ AC_CHECK_MEMBERS([struct stat.st_atim.tv_nsec,
 
 dnl Check for struct timezone since some old SCO versions do not define it
 zsh_TYPE_EXISTS([
+#define _GNU_SOURCE 1
 #ifdef HAVE_SYS_TIME_H
 # include <sys/time.h>
 #endif
@@ -2455,6 +2488,17 @@ if test x$zsh_cv_c_unicode_support = xyes; then
 fi
 
 dnl
+dnl musl support
+dnl
+AH_TEMPLATE([LIBC_MUSL],
+[Define to 1 if musl is being used as the C library])
+AC_ARG_ENABLE(libc-musl,
+AC_HELP_STRING([--enable-libc-musl], [compile with musl as the C library]),
+[if test x$enableval = xyes; then
+  AC_DEFINE(LIBC_MUSL)
+fi])
+
+dnl
 dnl static user lookup
 dnl
 AC_ARG_ENABLE(dynamic-nss,
@@ -3065,6 +3109,9 @@ man page install path     : ${zshman}
 info install path         : ${zshinfo}"
 if test "$zshfndir" != no; then
   echo "functions install path    : ${zshfndir}"
+fi
+if test "x$additionalfpath" != x; then
+  echo "additional fpath entries  : ${additionalfpath}"
 fi
 echo "See config.modules for installed modules and functions.
 "

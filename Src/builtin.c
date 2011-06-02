@@ -2420,12 +2420,12 @@ bin_typeset(char *name, char **argv, Options ops, int func)
 	}
 	if (!strcmp(asg0.name, asg->name)) {
 	    unqueue_signals();
-	    zerrnam(name, "can't tie a variable to itself");
+	    zerrnam(name, "can't tie a variable to itself: %s", asg0.name);
 	    return 1;
 	}
 	if (strchr(asg0.name, '[') || strchr(asg->name, '[')) {
 	    unqueue_signals();
-	    zerrnam(name, "can't tie array elements");
+	    zerrnam(name, "can't tie array elements: %s", asg0.name);
 	    return 1;
 	}
 	/*
@@ -2440,6 +2440,11 @@ bin_typeset(char *name, char **argv, Options ops, int func)
 	if ((pm = (Param) paramtab->getnode(paramtab, asg0.name))
 	    && !(pm->node.flags & PM_UNSET)
 	    && (locallevel == pm->level || !(on & PM_LOCAL))) {
+	    if (pm->node.flags & PM_TIED) {
+		unqueue_signals();
+		zerrnam(name, "can't tie already tied scalar: %s", asg0.name);
+		return 1;
+	    }
 	    if (!asg0.value && !(PM_TYPE(pm->node.flags) & (PM_ARRAY|PM_HASHED)))
 		oldval = ztrdup(getsparam(asg0.name));
 	    on |= (pm->node.flags & PM_EXPORTED);
@@ -3898,7 +3903,7 @@ bin_print(char *name, char **args, Options ops, int func)
 	     * nc: number of columns (at least one)
 	     */
 	    sc = l + 2;
-	    nc = (columns + 1) / sc;
+	    nc = (zterm_columns + 1) / sc;
 	    if (!nc)
 		nc = 1;
 	    nr = (n + nc - 1) / nc;
@@ -4708,7 +4713,7 @@ zexit(int val, int from_where)
      */
     in_exit = -1;
     /*
-     * We want to do all remaining processing regardless of preceeding
+     * We want to do all remaining processing regardless of preceding
      * errors.
      */
     errflag = 0;
@@ -4821,8 +4826,14 @@ bin_dot(char *name, char **argv, UNUSED(Options ops), UNUSED(int func))
 	freearray(pparams);
 	pparams = old;
     }
-    if (ret == SOURCE_NOT_FOUND)
-	zwarnnam(name, "%e: %s", errno, enam);
+    if (ret == SOURCE_NOT_FOUND) {
+	if (isset(POSIXBUILTINS)) {
+	    /* hard error in POSIX (we'll exit later) */
+	    zerrnam(name, "%e: %s", errno, enam);
+	} else {
+	    zwarnnam(name, "%e: %s", errno, enam);
+	}
+    }
     zsfree(arg0);
     if (old0) {
 	zsfree(argzero);
@@ -5280,9 +5291,16 @@ bin_read(char *name, char **args, Options ops, UNUSED(int func))
 		    *bptr = readchar;
 		    val = 1;
 		    readchar = -1;
-		} else if ((val = read(readfd, bptr, nchars)) <= 0) {
-		    eof = 1;
-		    break;
+		} else {
+		    while ((val = read(readfd, bptr, nchars)) < 0) {
+			if (errno != EINTR ||
+			    errflag || retflag || breaks || contflag)
+			    break;
+		    }
+		    if (val <= 0) {
+			eof = 1;
+			break;
+		    }
 		}
 
 #ifdef MULTIBYTE_SUPPORT
@@ -5710,7 +5728,12 @@ bin_read(char *name, char **args, Options ops, UNUSED(int func))
 	}
 	return 1;
     }
-    return 0;
+    /*
+     * The following is to ensure a failure to set the parameter
+     * causes a non-zero status return.  There are arguments for
+     * turning a non-zero status into errflag more widely.
+     */
+    return errflag;
 }
 
 /**/

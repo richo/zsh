@@ -243,6 +243,7 @@ parseargs(char **argv, char **runscript)
      * still 2 at the end, we set it to the value of INTERACTIVE.
      */
     opts[MONITOR] = 2;   /* may be unset in init_io() */
+    opts[HASHDIRS] = 2;  /* same relationship to INTERACTIVE */
     opts[SHINSTDIN] = 0;
     opts[SINGLECOMMAND] = 0;
 
@@ -351,6 +352,8 @@ parseargs(char **argv, char **runscript)
     opts[INTERACTIVE] = !!opts[INTERACTIVE];
     if (opts[MONITOR] == 2)
 	opts[MONITOR] = opts[INTERACTIVE];
+    if (opts[HASHDIRS] == 2)
+	opts[HASHDIRS] = opts[INTERACTIVE];
     pparams = x = (char **) zshcalloc((countlinknodes(paramlist) + 1) * sizeof(char *));
 
     while ((*x++ = (char *)getlinknode(paramlist)));
@@ -673,10 +676,14 @@ setupvals(void)
     struct timezone dummy_tz;
     char *ptr;
     int i, j;
-#if defined(SITEFPATH_DIR) || defined(FPATH_DIR)
+#if defined(SITEFPATH_DIR) || defined(FPATH_DIR) || defined (ADDITIONAL_FPATH)
     char **fpathptr;
 # if defined(FPATH_DIR) && defined(FPATH_SUBDIRS)
     char *fpath_subdirs[] = FPATH_SUBDIRS;
+# endif
+# if defined(ADDITIONAL_FPATH)
+    char *more_fndirs[] = ADDITIONAL_FPATH;
+    int more_fndirs_len;
 # endif
 # ifdef SITEFPATH_DIR
     int fpathlen = 1;
@@ -761,7 +768,7 @@ setupvals(void)
     manpath  = mkarray(NULL);
     fignore  = mkarray(NULL);
 
-#if defined(SITEFPATH_DIR) || defined(FPATH_DIR)
+#if defined(SITEFPATH_DIR) || defined(FPATH_DIR) || defined(ADDITIONAL_FPATH)
 # ifdef FPATH_DIR
 #  ifdef FPATH_SUBDIRS
     fpathlen += sizeof(fpath_subdirs)/sizeof(char *);
@@ -769,15 +776,28 @@ setupvals(void)
     fpathlen++;
 #  endif
 # endif
+# if defined(ADDITIONAL_FPATH)
+    more_fndirs_len = sizeof(more_fndirs)/sizeof(char *);
+    fpathlen += more_fndirs_len;
+# endif
     fpath = fpathptr = (char **)zalloc((fpathlen+1)*sizeof(char *));
 # ifdef SITEFPATH_DIR
     *fpathptr++ = ztrdup(SITEFPATH_DIR);
     fpathlen--;
 # endif
+# if defined(ADDITIONAL_FPATH)
+    for (j = 0; j < more_fndirs_len; j++)
+	*fpathptr++ = ztrdup(more_fndirs[j]);
+# endif
 # ifdef FPATH_DIR
 #  ifdef FPATH_SUBDIRS
+#   ifdef ADDITIONAL_FPATH
+    for (j = more_fndirs_len; j < fpathlen; j++)
+	*fpathptr++ = tricat(FPATH_DIR, "/", fpath_subdirs[j - more_fndirs_len]);
+#   else
     for (j = 0; j < fpathlen; j++)
 	*fpathptr++ = tricat(FPATH_DIR, "/", fpath_subdirs[j]);
+#endif
 #  else
     *fpathptr++ = ztrdup(FPATH_DIR);
 #  endif
@@ -888,8 +908,8 @@ setupvals(void)
     /* columns and lines are normally zero, unless something different *
      * was inhereted from the environment.  If either of them are zero *
      * the setiparam calls below set them to the defaults from termcap */
-    setiparam("COLUMNS", columns);
-    setiparam("LINES", lines);
+    setiparam("COLUMNS", zterm_columns);
+    setiparam("LINES", zterm_lines);
 #endif
 
 #ifdef HAVE_GETRLIMIT

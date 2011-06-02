@@ -86,6 +86,7 @@ mod_export
 char *ifs,		/* $IFS         */
      *postedit,		/* $POSTEDIT    */
      *term,		/* $TERM        */
+     *zsh_terminfo,     /* $TERMINFO    */
      *ttystrname,	/* $TTY         */
      *pwd;		/* $PWD         */
 
@@ -94,8 +95,8 @@ mod_export
 zlong lastval,		/* $?           */
      mypid,		/* $$           */
      lastpid,		/* $!           */
-     columns,		/* $COLUMNS     */
-     lines,		/* $LINES       */
+     zterm_columns,	/* $COLUMNS     */
+     zterm_lines,	/* $LINES       */
      ppid,		/* $PPID        */
      zsh_subshell;	/* $ZSH_SUBSHELL */
 /**/
@@ -202,6 +203,8 @@ static const struct gsu_scalar home_gsu =
 { homegetfn, homesetfn, stdunsetfn };
 static const struct gsu_scalar term_gsu =
 { termgetfn, termsetfn, stdunsetfn };
+static const struct gsu_scalar terminfo_gsu =
+{ terminfogetfn, terminfosetfn, stdunsetfn };
 static const struct gsu_scalar wordchars_gsu =
 { wordcharsgetfn, wordcharssetfn, stdunsetfn };
 static const struct gsu_scalar ifs_gsu =
@@ -276,6 +279,7 @@ IPDEF2("-", dash_gsu, PM_READONLY),
 IPDEF2("histchars", histchars_gsu, PM_DONTIMPORT),
 IPDEF2("HOME", home_gsu, PM_UNSET),
 IPDEF2("TERM", term_gsu, 0),
+IPDEF2("TERMINFO", terminfo_gsu, PM_UNSET),
 IPDEF2("WORDCHARS", wordchars_gsu, 0),
 IPDEF2("IFS", ifs_gsu, PM_DONTIMPORT),
 IPDEF2("_", underscore_gsu, PM_READONLY),
@@ -312,8 +316,8 @@ IPDEF4("PPID", &ppid),
 IPDEF4("ZSH_SUBSHELL", &zsh_subshell),
 
 #define IPDEF5(A,B,F) {{NULL,A,PM_INTEGER|PM_SPECIAL},BR((void *)B),GSU(varinteger_gsu),10,0,NULL,NULL,NULL,0}
-IPDEF5("COLUMNS", &columns, zlevar_gsu),
-IPDEF5("LINES", &lines, zlevar_gsu),
+IPDEF5("COLUMNS", &zterm_columns, zlevar_gsu),
+IPDEF5("LINES", &zterm_lines, zlevar_gsu),
 IPDEF5("OPTIND", &zoptind, varinteger_gsu),
 IPDEF5("SHLVL", &shlvl, varinteger_gsu),
 IPDEF5("TRY_BLOCK_ERROR", &try_errflag, varinteger_gsu),
@@ -974,7 +978,7 @@ copyparam(Param tpm, Param pm, int fakecopy)
      * called from inside an associative array), we need the gets and sets
      * functions to be useful.
      *
-     * In this case we assume the the saved parameter is not itself special,
+     * In this case we assume the saved parameter is not itself special,
      * so we just use the standard functions.  This is also why we switch off
      * PM_SPECIAL.
      */
@@ -1009,6 +1013,8 @@ isident(char *s)
      * definitely not a valid identifier.         */
     if (!*ss)
 	return 1;
+    if (s == ss)
+	return 0;
     if (*ss != '[')
 	return 0;
 
@@ -1054,6 +1060,14 @@ getarg(char **str, int *inv, Value v, int a2, zlong *w,
     char *s = *str, *sep = NULL, *t, sav, *d, **ta, **p, *tt, c;
     zlong num = 1, beg = 0, r = 0, quote_arg = 0;
     Patprog pprog = NULL;
+
+    /*
+     * If in NO_EXEC mode, the parameters won't be set up
+     * properly, so there's no point even doing any sanity checking.
+     * Just return 0 now.
+     */
+    if (unset(EXECOPT))
+	return 0;
 
     ishash = (v->pm && PM_TYPE(v->pm->node.flags) == PM_HASHED);
     if (prevcharlen)
@@ -2230,6 +2244,8 @@ export_param(Param pm)
 mod_export void
 setstrvalue(Value v, char *val)
 {
+    if (unset(EXECOPT))
+	return;
     if (v->pm->node.flags & PM_READONLY) {
 	zerr("read-only variable: %s", v->pm->node.nam);
 	zsfree(val);
@@ -2361,6 +2377,8 @@ setnumvalue(Value v, mnumber val)
 {
     char buf[BDIGBUFSIZE], *p;
 
+    if (unset(EXECOPT))
+	return;
     if (v->pm->node.flags & PM_READONLY) {
 	zerr("read-only variable: %s", v->pm->node.nam);
 	return;
@@ -2398,6 +2416,8 @@ setnumvalue(Value v, mnumber val)
 mod_export void
 setarrvalue(Value v, char **val)
 {
+    if (unset(EXECOPT))
+	return;
     if (v->pm->node.flags & PM_READONLY) {
 	zerr("read-only variable: %s", v->pm->node.nam);
 	freearray(val);
@@ -2442,8 +2462,6 @@ setarrvalue(Value v, char **val)
 		v->start--;
 	    v->end--;
 	}
-	if (v->end < v->start)
-	    v->end = v->start;
 	q = old = v->pm->gsu.a->getfn(v->pm);
 	n = arrlen(old);
 	if (v->start < 0) {
@@ -2456,6 +2474,8 @@ setarrvalue(Value v, char **val)
 	    if (v->end < 0)
 		v->end = 0;
 	}
+	if (v->end < v->start)
+	    v->end = v->start;
 
 	ll = v->start + arrlen(val);
 	if (v->end <= n)
@@ -2808,6 +2828,8 @@ sethparam(char *s, char **val)
 	errflag = 1;
 	return NULL;
     }
+    if (unset(EXECOPT))
+	return NULL;
     queue_signals();
     if (!(v = fetchvalue(&vbuf, &s, 1, SCANPM_ASSIGNING)))
 	createparam(t, PM_HASHED);
@@ -2846,6 +2868,8 @@ setnparam(char *s, mnumber val)
 	errflag = 1;
 	return NULL;
     }
+    if (unset(EXECOPT))
+	return NULL;
     queue_signals();
     ss = strchr(s, '[');
     v = getvalue(&vbuf, &s, 1);
@@ -3249,8 +3273,8 @@ zlevarsetfn(Param pm, zlong x)
     zlong *p = pm->u.valptr;
 
     *p = x;
-    if (p == &lines || p == &columns)
-	adjustwinsize(2 + (p == &columns));
+    if (p == &zterm_lines || p == &zterm_columns)
+	adjustwinsize(2 + (p == &zterm_columns));
 }
 
 /* Function to set value of generic special scalar    *
@@ -4025,6 +4049,18 @@ underscoregetfn(UNUSED(Param pm))
     return u;
 }
 
+/* Function used when we need to reinitialise the terminal */
+
+static void
+term_reinit_from_pm(void)
+{
+    /* If non-interactive, delay setting up term till we need it. */
+    if (unset(INTERACTIVE) || !*term)
+	termflags |= TERM_UNKNOWN;
+    else
+	init_term();
+}
+
 /* Function to get value for special parameter `TERM' */
 
 /**/
@@ -4042,12 +4078,35 @@ termsetfn(UNUSED(Param pm), char *x)
 {
     zsfree(term);
     term = x ? x : ztrdup("");
+    term_reinit_from_pm();
+}
 
-    /* If non-interactive, delay setting up term till we need it. */
-    if (unset(INTERACTIVE) || !*term)
-	termflags |= TERM_UNKNOWN;
-    else 
-	init_term();
+/* Function to get value of special parameter `TERMINFO' */
+
+/**/
+char *
+terminfogetfn(UNUSED(Param pm))
+{
+    return zsh_terminfo ? zsh_terminfo : dupstring("");
+}
+
+/* Function to set value of special parameter `TERMINFO' */
+
+/**/
+void
+terminfosetfn(Param pm, char *x)
+{
+    zsfree(zsh_terminfo);
+    zsh_terminfo = x;
+
+    /*
+     * terminfo relies on the value being exported before
+     * we reinitialise the terminal.  This is a bit inefficient.
+     */
+    if ((pm->node.flags & PM_EXPORTED) && x)
+	addenv(pm, x);
+
+    term_reinit_from_pm();
 }
 
 /* Function to get value for special parameter `pipestatus' */

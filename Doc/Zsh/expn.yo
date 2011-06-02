@@ -381,7 +381,7 @@ Each part of a command argument that takes the form
 `tt(<LPAR())var(list)tt(RPAR())',
 `tt(>LPAR())var(list)tt(RPAR())' or
 `tt(=LPAR())var(list)tt(RPAR())'
-is subject to process substitution.  The expression may be preceeded
+is subject to process substitution.  The expression may be preceded
 or followed by other strings except that, to prevent clashes with
 commonly occurring strings and patterns, the last
 form must occur at the start of a command argument, and the forms
@@ -588,7 +588,7 @@ remove the non-matched elements).
 xitem(tt(${)var(name)tt(:)var(offset)tt(}))
 item(tt(${)var(name)tt(:)var(offset)tt(:)var(length)tt(}))(
 This syntax gives effects similar to parameter subscripting
-in the form tt($)var(name)tt({)var(start)tt(,)var(end)tt(}), but is
+in the form tt($)var(name)tt([)var(start)tt(,)var(end)tt(]), but is
 compatible with other shells; note that both var(offset) and var(length)
 are interpreted differently from the components of a subscript.
 
@@ -608,8 +608,12 @@ the option tt(KSH_ARRAYS).
 A negative offset counts backwards from the end of the scalar or array,
 so that -1 corresponds to the last character or element, and so on.
 
-var(length) is always treated directly as a length and hence may not be
-negative.  The option tt(MULTIBYTE) is obeyed, i.e. the offset and length
+When positive, var(length) counts from the var(offset) position
+toward the end of the scalar or array.  When negative, var(length)
+counts back from the end.  If this results in a position smaller
+than var(offset), a diagnostic is printed and nothing is substituted.
+
+The option tt(MULTIBYTE) is obeyed, i.e. the offset and length
 count multibyte characters where appropriate.
 
 var(offset) and var(length) undergo the same set of shell substitutions
@@ -635,7 +639,7 @@ tt(${)var(name)tt(:-)var(word)tt(}) form of substitution.  Instead, a space
 may be inserted before the tt(-).  Furthermore, neither var(offset) nor
 var(length) may begin with an alphabetic character or tt(&) as these are
 used to indicate history-style modifiers.  To substitute a value from a
-variable, the recommended approach is to proceed it with a tt($) as this
+variable, the recommended approach is to precede it with a tt($) as this
 signifies the intention (parameter substitution can easily be rendered
 unreadable); however, as arithmetic substitution is performed, the
 expression tt(${var: offs}) does work, retrieving the offset from
@@ -809,7 +813,7 @@ item(tt(@))(
 In double quotes, array elements are put into separate words.
 E.g., `tt("${(@)foo}")' is equivalent to `tt("${foo[@]}")' and
 `tt("${(@)foo[1,2]}")' is the same as `tt("$foo[1]" "$foo[2]")'.
-This is distinct from em(field splitting) by the the tt(f), tt(s)
+This is distinct from em(field splitting) by the tt(f), tt(s)
 or tt(z) flags, which still applies within each array element.
 )
 item(tt(A))(
@@ -858,6 +862,14 @@ for `tt(ps:\n:)'.
 item(tt(F))(
 Join the words of arrays together using newline as a separator.
 This is a shorthand for `tt(pj:\n:)'.
+)
+item(tt(g:opts:))(
+Process escape sequences like the echo builtin when no options are given
+(tt(g::)).  With the tt(o) option, octal escapes don't take a leading
+zero.  With the tt(c) option, sequences like `tt(^X)' are also processed.
+With the tt(e) option, processes `tt(\M-t)' and similar sequences like the
+print builtin.  With both of the tt(o) and tt(e) options, behaves like the
+print builtin except that in none of these modes is `tt(\c)' interpreted.
 )
 item(tt(i))(
 Sort case-insensitively.  May be combined with `tt(n)' or `tt(O)'.
@@ -1104,7 +1116,9 @@ Force field splitting at the
 separator var(string).  Note that a var(string) of two or more
 characters means that all of them must match in sequence; this differs from
 the treatment of two or more characters in the tt(IFS) parameter.
-See also the tt(=) flag and the tt(SH_WORD_SPLIT) option.
+See also the tt(=) flag and the tt(SH_WORD_SPLIT) option.  An empty
+string may also be given in which case every character will be a separate
+element.
 
 For historical reasons, the usual behaviour that empty array elements
 are retained inside double quotes is disabled for arrays generated
@@ -1288,8 +1302,9 @@ item(tt(11.) em(Case modification))(
 Any case modification from one of the flags tt((L)), tt((U)) or tt((C))
 is applied.
 )
-item(tt(12.) em(Prompt evaluation))(
-Any prompt-style formatting from the tt((%)) family of flags is applied.
+item(tt(12.) em(Escape sequence replacement))(
+First any replacements from the tt((g)) flag are performed, then any
+prompt-style formatting from the tt((%)) family of flags is applied.
 )
 item(tt(13.) em(Quote application))(
 Any quoting or unquoting using tt((q)) and tt((Q)) and related flags
@@ -1517,8 +1532,12 @@ cindex(directories, named, dynamic)
 cindex(named directories, dynamic)
 cindex(dynamic named directories)
 
-The feature described here is only available if the shell function
-tt(zsh_directory_name) exists.
+If the function tt(zsh_directory_name) exists, or the shell variable
+tt(zsh_directory_name_functions) exists and contains an array of
+function names, then the functions are used to implement dynamic
+directory naming.  The functions are tried in order until one returns
+status zero, so it is important that functions test whether they can
+handle the case in question and return an appropriate status.
 
 A `tt(~)' followed by a string var(namstr) in unquoted square brackets is
 treated specially as a dynamic directory name.  Note that the first
@@ -1529,11 +1548,12 @@ which is the directory corresponding to the name and return status zero
 (executing an assignment as the last statement is usually sufficient), or
 it should return status non-zero.  In the former case the element of reply
 is used as the directory; in the latter case the substitution is deemed to
-have failed and tt(NOMATCH) handling is applied if the option is set.
+have failed.  If all functions fail and the option tt(NOMATCH) is set,
+an error results.
 
-The function tt(zsh_directory_name) is also used to see if a directory can
+The functions defined as above are also used to see if a directory can
 be turned into a name, for example when printing the directory stack or
-when expanding tt(%~) in prompts.  In this case the function is passed two
+when expanding tt(%~) in prompts.  In this case each function is passed two
 arguments: the string tt(d) (for directory) and the candidate for dynamic
 naming.  The function should either return non-zero status, if the
 directory cannot be named by the function, or it should set the array reply
@@ -1551,7 +1571,15 @@ parts of the directory path, as described below; it is used if the prefix
 length matched (16 in the example) is longer than that matched by any
 static name.
 
-The completion system calls `tt(zsh_directory_name c)' in order to
+It is not a requirement that a function implements both
+tt(n) and tt(d) calls; for example, it might be appropriate for certain
+dynamic forms of expansion not to be contracted to names.  In that case
+any call with the first argument tt(d) should cause a non-zero status to
+be returned.
+
+The completion system calls `tt(zsh_directory_name c)' followed by
+equivalent calls to elements of the array
+tt(zsh_directory_name_functions), if it exists, in order to
 complete dynamic names for directories.  The code for this should be
 as for any other completion function as described in
 ifnzman(noderef(Completion System))\

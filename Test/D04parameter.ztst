@@ -175,6 +175,14 @@
 0:${#...}, $#...
 >8 8 8 8 8 8 8 8
 
+  set 1 2 3 4 5 6 7 8 9
+  print ${##}
+  set 1 2 3 4 5 6 7 8 9 10
+  print ${##}
+0:${##} is length of $#
+>1
+>2
+
   array=(once bitten twice shy)
   print IF${array}THEN
   print IF${^array}THEN
@@ -289,6 +297,26 @@
 0:Regress ${(e)...} with backticks (see zsh-workers/15871)
 >Howzat
 >usay
+
+  foo='\u65\123'
+  print -r ${(g:o:)foo}
+  foo='\u65\0123'
+  print -r ${(g::)foo}
+  foo='\u65^X'
+  print -r ${(V)${(g:c:)foo}}
+  foo='\u65\C-x\M-a'
+  print -r ${(V)${(g:e:)foo}}
+  foo='\u65\123\C-x'
+  print -r ${(V)${(g:eo:)foo}}
+  foo=('\u65' '\0123' '^X\M-a')
+  print -r ${(V)${(g:e:)foo}}
+0:${(g)...}
+>eS
+>eS
+>e^X
+>e^X\M-a
+>eS^X
+>e S ^X\M-a
 
   foo='I'\''m nearly out of my mind with tedium'
   bar=foo
@@ -1338,6 +1366,7 @@
    print ${foo:$(echo 3 + 3):`echo 4 - 3`}
    print ${foo: -1}
    print ${foo: -10}
+   print ${foo:5:-2}
 0:Bash-style offsets, scalar
 >456789
 >56789
@@ -1349,6 +1378,7 @@
 >7
 >9
 >123456789
+>67
 
    foo=(1 2 3 4 5 6 7 8 9)
    print ${foo:3}
@@ -1361,6 +1391,7 @@
    print ${foo:$(echo 3 + 3):`echo 4 - 3`}
    print ${foo: -1}
    print ${foo: -10}
+   print ${foo:5:-2}
 0:Bash-style offsets, array
 >4 5 6 7 8 9
 >5 6 7 8 9
@@ -1372,6 +1403,7 @@
 >7
 >9
 >1 2 3 4 5 6 7 8 9
+>6 7
 
    testfn() {
      emulate -L sh
@@ -1401,3 +1433,22 @@
 >a
 >b
 >c
+
+   printf "%n" '[0]'
+1:Regression test for identifier test
+?(eval):1: not an identifier: [0]
+
+   str=rts
+   print ${str:0:}
+1:Regression test for missing length after offset
+?(eval):2: unrecognized modifier
+
+   foo="123456789"
+   print ${foo:5:-6}
+1:Regression test for total length < 0 in string
+?(eval):2: substring expression: 3 < 5
+
+   foo=(1 2 3 4 5 6 7 8 9)
+   print ${foo:5:-6}
+1:Regression test for total length < 0 in array
+?(eval):2: substring expression: 3 < 5

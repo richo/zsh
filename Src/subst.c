@@ -579,7 +579,6 @@ filesubstr(char **namptr, int assign)
     char *str = *namptr;
 
     if (*str == Tilde && str[1] != '=' && str[1] != Equals) {
-	Shfunc dirfunc;
 	char *ptr, *tmp, *res, *ptr2;
 	int val;
 
@@ -594,12 +593,11 @@ filesubstr(char **namptr, int assign)
 	    *namptr = dyncat((tmp = oldpwd) ? tmp : pwd, str + 2);
 	    return 1;
 	} else if (str[1] == Inbrack &&
-		   (dirfunc = getshfunc("zsh_directory_name")) &&
 		   (ptr2 = strchr(str+2, Outbrack))) {
 	    char **arr;
 	    untokenize(tmp = dupstrpfx(str+2, ptr2 - (str+2)));
 	    remnulargs(tmp);
-	    arr = subst_string_by_func(dirfunc, "n", tmp);
+	    arr = subst_string_by_hook("zsh_directory_name", "n", tmp);
 	    res = arr ? *arr : NULL;
 	    if (res) {
 		*namptr = dyncat(res, ptr2+1);
@@ -1596,7 +1594,7 @@ paramsubst(LinkList l, LinkNode n, char **str, int qt, int ssub)
     int arrasg = 0;
     /*
      * The (e) flag.  As we need to do extra work not quite
-     * at the end, the effect of this is kludged in in several places.
+     * at the end, the effect of this is kludged in several places.
      */
     int eval = 0;
     /*
@@ -1609,11 +1607,15 @@ paramsubst(LinkList l, LinkNode n, char **str, int qt, int ssub)
      */	
     int presc = 0;
     /*
+     * The (g) flag.  Process escape sequences with various GETKEY_ flags.
+     */
+    int getkeys = -1;
+    /*
      * The (@) flag; interacts obscurely with qt and isarr.
      * This is one of the things that decides whether multsub
      * will produce an array, but in an extremely indirect fashion.
      */
-    int nojoin = 0;
+    int nojoin = isset(SHWORDSPLIT) ? !(ifs && *ifs) : 0;
     /*
      * != 0 means ${...}, otherwise $...  What works without braces
      * is largely a historical artefact (everything works with braces,
@@ -1719,7 +1721,7 @@ paramsubst(LinkList l, LinkNode n, char **str, int qt, int ssub)
 		    ++arrasg;
 		    break;
 		case '@':
-		    nojoin = 1;
+		    nojoin = 2;	/* nojoin = 2 means force */
 		    break;
 		case 'M':
 		    flags |= SUB_MATCH;
@@ -1934,6 +1936,36 @@ paramsubst(LinkList l, LinkNode n, char **str, int qt, int ssub)
 		    presc++;
 		    break;
 
+		case 'g':
+		    t = get_strarg(++s, &arglen);
+		    if (getkeys < 0)
+			getkeys = 0;
+		    if (*t) {
+			sav = *t;
+			*t = 0;
+			while (*++s) {
+			    switch (*s) {
+			    case 'e':
+				getkeys |= GETKEY_EMACS;
+				break;
+			    case 'o':
+				getkeys |= GETKEY_OCTAL_ESC;
+				break;
+			    case 'c':
+				getkeys |= GETKEY_CTRL;
+				break;
+
+			    default:
+				*t = sav;
+				goto flagerr;
+			    }
+			}
+			*t = sav;
+			s = t + arglen - 1;
+		    } else
+			goto flagerr;
+		    break;
+
 		case 'z':
 		    shsplit = LEXFLAGS_ACTIVE;
 		    break;
@@ -2035,12 +2067,20 @@ paramsubst(LinkList l, LinkNode n, char **str, int qt, int ssub)
 	    /* SH_WORD_SPLIT on or off (doubled). spbreak = 2 means force */
 	    if ((c = *++s) == '=' || c == Equals) {
 		spbreak = 0;
+		if (nojoin < 2)
+		    nojoin = 0;
 		s++;
-	    } else
+	    } else {
 		spbreak = 2;
+		if (nojoin < 2)
+		    nojoin = !(ifs && *ifs);
+	    }
 	} else if ((c == '#' || c == Pound) &&
 		   (itype_end(s+1, IIDENT, 0) != s + 1
 		    || (cc = s[1]) == '*' || cc == Star || cc == '@'
+		    || cc == '?' || cc == Quest
+		    || cc == '$' || cc == String || cc == Qstring
+		    || cc == '#' || cc == Pound
 		    || cc == '-' || (cc == ':' && s[2] == '-')
 		    || (isstring(cc) && (s[2] == Inbrace || s[2] == Inpar)))) {
 	    getlen = 1 + whichlen, s++;
@@ -2652,14 +2692,14 @@ paramsubst(LinkList l, LinkNode n, char **str, int qt, int ssub)
 		*idend = sav;
 		copied = 1;
 		if (isarr) {
-		  if (nojoin)
-		    isarr = -1;
-		  if (qt && !getlen && isarr > 0 && !spsep && spbreak < 2) {
-		    val = sepjoin(aval, sep, 1);
-		    isarr = 0;
-		  }
-		  sep = spsep = NULL;
-		  spbreak = 0;
+		    if (nojoin)
+			isarr = -1;
+		    if (qt && !getlen && isarr > 0 && !spsep && spbreak < 2) {
+			val = sepjoin(aval, sep, 1);
+			isarr = 0;
+		    }
+		    sep = spsep = NULL;
+		    spbreak = 0;
 		}
 	    }
 	    break;
@@ -2799,7 +2839,8 @@ paramsubst(LinkList l, LinkNode n, char **str, int qt, int ssub)
 	    char *check_offset = check_colon_subscript(s, &check_offset2);
 	    if (check_offset) {
 		zlong offset = mathevali(check_offset);
-		zlong length = (zlong)-1;
+		zlong length;
+		int length_set = 0;
 		int offset_hack_argzero = 0;
 		if (errflag)
 		    return NULL;
@@ -2814,12 +2855,11 @@ paramsubst(LinkList l, LinkNode n, char **str, int qt, int ssub)
 			zerr("invalid length: %s", check_offset);
 			return NULL;
 		    }
-		    length = mathevali(check_offset);
-		    if (errflag)
-			return NULL;
-		    if (length < (zlong)0) {
-			zerr("invalid length: %s", check_offset);
-			return NULL;
+		    if (check_offset) {
+			length = mathevali(check_offset);
+			length_set = 1;
+			if (errflag)
+			    return NULL;
 		    }
 		}
 		if (horrible_offset_hack) {
@@ -2847,8 +2887,16 @@ paramsubst(LinkList l, LinkNode n, char **str, int qt, int ssub)
 		    }
 		    if (offset_hack_argzero)
 			alen++;
-		    if (length < 0)
-		      length = alen;
+		    if (length_set) {
+			if (length < 0)
+			    length += alen - offset;
+			if (length < 0) {
+			    zerr("substring expression: %d < %d",
+			         (int)(length + offset), (int)offset);
+			    return NULL;
+			}
+		    } else
+			length = alen;
 		    if (offset > alen)
 			offset = alen;
 		    if (offset + length > alen)
@@ -2867,6 +2915,7 @@ paramsubst(LinkList l, LinkNode n, char **str, int qt, int ssub)
 		    aval = newarr;
 		} else {
 		    char *sptr, *eptr;
+		    int given_offset;
 		    if (offset < 0) {
 			MB_METACHARINIT();
 			for (sptr = val; *sptr; ) {
@@ -2876,12 +2925,28 @@ paramsubst(LinkList l, LinkNode n, char **str, int qt, int ssub)
 			if (offset < 0)
 			    offset = 0;
 		    }
+		    given_offset = offset;
 		    MB_METACHARINIT();
+		    if (length_set && length < 0)
+			length -= offset;
 		    for (sptr = val; *sptr && offset; ) {
 			sptr += MB_METACHARLEN(sptr);
 			offset--;
 		    }
-		    if (length >= 0) {
+		    if (length_set) {
+			if (length < 0) {
+			    MB_METACHARINIT();
+			    for (eptr = val; *eptr; ) {
+				eptr += MB_METACHARLEN(eptr);
+				length++;
+			    }
+			    if (length < 0) {
+				zerr("substring expression: %d < %d",
+				     (int)(length + given_offset),
+				     (int)given_offset);
+				return NULL;
+			    }
+			}
 			for (eptr = sptr; *eptr && length; ) {
 			    eptr += MB_METACHARLEN(eptr);
 			    length--;
@@ -2979,7 +3044,7 @@ paramsubst(LinkList l, LinkNode n, char **str, int qt, int ssub)
      * TODO: again. one might naively have thought this had the
      * same sort of effect as the ${(t)...} flag and the ${+...}
      * test, although in this case we do need the value rather
-     * the the parameter, so maybe it's a bit different.
+     * the parameter, so maybe it's a bit different.
      */
     if (getlen) {
 	long len = 0;
@@ -3015,7 +3080,7 @@ paramsubst(LinkList l, LinkNode n, char **str, int qt, int ssub)
     /* At this point we make sure that our arrayness has affected the
      * arrayness of the linked list.  Then, we can turn our value into
      * a scalar for convenience sake without affecting the arrayness
-     * of the resulting value. */
+     * of the resulting value.  ## This is the YUK chunk. ## */
     if (isarr)
 	l->list.flags |= LF_ARRAY;
     else
@@ -3037,7 +3102,7 @@ paramsubst(LinkList l, LinkNode n, char **str, int qt, int ssub)
      * done any requested splitting of the word value with quoting preserved.
      * "ssub" is true when we are called from singsub (via prefork):
      * it means that we must join arrays and should not split words. */
-    if (ssub || spbreak || spsep || sep) {
+    if (ssub || (spbreak && isarr >= 0) || spsep || sep) {
 	if (isarr) {
 	    val = sepjoin(aval, sep, 1);
 	    isarr = 0;
@@ -3072,6 +3137,28 @@ paramsubst(LinkList l, LinkNode n, char **str, int qt, int ssub)
 	    *ap2++ = NULL;
 	} else {
 	    val = casemodify(val, casmod);
+	}
+    }
+    /*
+     * Process echo- and print-style escape sequences.
+     */
+    if (getkeys >= 0) {
+	int len;
+
+	copied = 1;		/* string is always copied */
+	if (isarr) {
+	    char **ap, **ap2;
+
+	    ap = aval;
+	    aval = (char **) zhalloc(sizeof(char *) * (arrlen(aval)+1));
+	    for (ap2 = aval; *ap; ap++, ap2++) {
+		*ap2 = getkeystring(*ap, &len, getkeys, NULL);
+		*ap2 = metafy(*ap2, len, META_USEHEAP);
+	    }
+	    *ap2++ = NULL;
+	} else {
+	    val = getkeystring(val, &len, getkeys, NULL);
+	    val = metafy(val, len, META_USEHEAP);
 	}
     }
     /*
