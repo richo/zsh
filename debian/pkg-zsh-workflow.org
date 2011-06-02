@@ -249,6 +249,14 @@
     % git-dch --debian-branch=debian --id-length=8 --multimaint-merge
 #+END_EXAMPLE
 
+    If you absolutely *must* make changelog entries by other means, you
+    should make sure that you prefix any resulting commits with
+    "[dch-ignore] ", so those commits can be weeded out easily.
+
+    There is a helper script "debian/do-dch" which takes care of all
+    formatting options as well as the "[dch-ignored] " weeding. The
+    script should be used unless there is a good reason not to.
+
 
 ** Transitioning to a new upstream version
 
@@ -275,9 +283,6 @@
 
     If old patches were still around, that could lead to conflicts
     when those would be applied during the build process.
-
-    The message for the merge commit should be set to "New upstream
-    release" to allow `git-dch' to pick it up correctly later.
 
 
 *** Update the autotools files for the new release
@@ -317,6 +322,64 @@
      all of them in the order in which `quilt' would apply them (if in
      doubt, ask "quilt series").
 
+*** Insert initial changelog for the new upstream release
+
+    `git-dch' seems to be in trouble with non-linear histories. Therefore
+    we introduced a small helper script that will help `git-dch' to a
+    linear history again.
+
+    Basically, you after merging the upstream release tag into the debian
+    branch, you'll be left with an history that looks something like
+    this:
+
+#+BEGIN_EXAMPLE
+    *    at2quilt: Updating autotools patches
+    M    Merge commit 'zsh-4.3.13' into debian
+    |`*  unposted: released 4.3.13
+    | *  ...
+    | *  ... lots of other upstream commits ...
+    | *  ...
+    * |  Removing upstream patches due to new release
+    * |  Last debian/4.3.12-* commit
+    * |  ...
+    * |  ... lot's of other debian/4.3.12-* commits
+    * |  ...
+    M´   Merge commit 'zsh-4.3.12' into debian
+    |`*  unposted: released 4.3.12
+    ...  older history
+#+END_EXAMPLE
+
+    And what you really want added to debian/changelog is the "atquilt:
+    Updating autotools patches" and the "Removing upstream patches due to
+    new release" commits. You need to figure out the sha1 sums of the
+    commits and then call this:
+
+#+BEGIN_EXAMPLE
+    % ./debian/urcl -p=zsh -v=4.3.13-1 b495ba1e f575f568
+#+END_EXAMPLE
+
+    ...where "4.3.13-1" is the version of the upcoming debian package and
+    "b495ba1e" and "f575f568" are the sha1 sums of the wanted commits.
+
+    At the end the script will drop you into an editor pointed at the
+    changelog file so you can sanity-check the generated output.
+
+    At this point it would also make sense to add a line like this:
+
+#+BEGIN_EXAMPLE
+  * New upstream release
+#+END_EXAMPLE
+
+    or something like this if the release fixes outstanding bugs:
+
+#+BEGIN_EXAMPLE
+  * New upstream release (Closes: #1234567890)
+#+END_EXAMPLE
+
+    When creating a commit with these changelog changes, make sure you
+    prefix the commit message with "[dch-ignore] " so it doesn't come up
+    in later git-dch runs.
+
 
 *** Fix outstanding bug
 
@@ -342,12 +405,31 @@
 #+END_EXAMPLE
 
 
+*** Update changelog again for the release
+
+    The `do-dch' helper script should be used to do this. It wraps
+    git-dch with appropriate options and weeds out any commits that are
+    prefixed with "[dch-ignore] ". All options to the script are turned
+    over to git-dch and at least `--since=...' should be used.
+
+    At this particular point the sha1 of the previous initial changelog
+    update commit would be a good idea. Also "-R" to tell git-dch to
+    prepare the changelog for an actual commit. So:
+
+#+BEGIN_EXAMPLE
+    % ./debian/do-dch --since=1234deadbeef -R
+#+END_EXAMPLE
+
+    You'll be dropped into an editor again to double check the generated
+    changelog.
+
+
 *** Tag debian/<new-zsh-version>-1
 
     After fixes for all serious and trivially fixable issues have been
-    added and it has been verified that the package builds, `git-dch'
-    should be used to update `debian/changelog' and the resulting
-    commit should be tagged as `debian/<new-zsh-version>-1'.
+    added and it has been verified that the package builds and `do-dch'
+    has updated `debian/changelog' and the resulting commit should be
+    tagged as `debian/<new-zsh-version>-1'.
 
 
 ** Generating packages
