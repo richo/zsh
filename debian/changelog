@@ -1,10 +1,17 @@
-zsh (4.3.12-1) UNRELEASED; urgency=low
+zsh (4.3.12-1) unstable; urgency=low
 
   * New upstream release (Closes: #627046)
   * [b495ba1e] Removing upstream patches due to new release
   * [f575f568] Add urcl script for changelog updates at upstream releases
+  * [8bcd117f] at2quilt: Updating autotools patches
+  * [bf0a44a8] Enable additional $fpath entries for add-ons from other
+    packages (Closes: #620452)
+  * [b52c798e] Add do-dch script for convenience
+  * [0ffda0fa] workflow.org: Fix structure
+  * [b70d6102] Workflow updates
+  * [250d8bd4] rules: system.h was renamed to zsh_system.h
 
- -- Frank Terbeck <ft@bewatermyfriend.org>  Thu, 02 Jun 2011 13:28:19 +0200
+ -- Frank Terbeck <ft@bewatermyfriend.org>  Thu, 02 Jun 2011 18:15:39 +0200
 
 zsh (4.3.11-5) unstable; urgency=low
 
