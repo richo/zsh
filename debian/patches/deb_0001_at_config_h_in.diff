@@ -1,13 +1,13 @@
 Patch to generate `config.h.in'.
 
-Created by `at2quilt' on Thu, 24 Feb 2011 22:03:49 CET.
+Created by `at2quilt' on Thu, 02 Jun 2011 10:50:44 CEST.
 
 Note: Never *ever* refresh this patch. Things will break.
 
 Index: pkg-zsh/config.h.in
---- pkg-zsh.orig/config.h.in	2011-01-31 20:40:34.619230074 +0100
-+++ pkg-zsh/config.h.in	2011-02-24 22:03:49.000000000 +0100
-@@ -0,0 +1,1150 @@
+--- pkg-zsh.orig/config.h.in	2011-05-26 15:03:35.965237415 +0200
++++ pkg-zsh/config.h.in	2011-06-02 10:50:44.000000000 +0200
+@@ -0,0 +1,1156 @@
 +/* config.h.in.  Generated from configure.ac by autoheader.  */
 +
 +/***** begin user configuration section *****/
@@ -940,6 +940,9 @@ Index: pkg-zsh/config.h.in
 +   ioctl(). */
 +#undef IOCTL_IN_SYS_IOCTL
 +
++/* Define to 1 if musl is being used as the C library */
++#undef LIBC_MUSL
++
 +/* Definitions used when a long is less than eight byte, to try to provide
 +   some support for eight byte operations. Note that ZSH_64_BIT_TYPE,
 +   OFF_T_IS_64_BIT, INO_T_IS_64_BIT do *not* get defined if long is already 64
@@ -1104,6 +1107,9 @@ Index: pkg-zsh/config.h.in
 +
 +/* Define to 1 if some variant of term.h can be included */
 +#undef ZSH_HAVE_TERM_H
++
++/* Define to 1 if you want to turn on error checking for heap allocation. */
++#undef ZSH_HEAP_DEBUG
 +
 +/* Define to 1 if you want to use zsh's own memory allocation routines */
 +#undef ZSH_MEM
