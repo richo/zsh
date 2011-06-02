@@ -30,6 +30,7 @@ CONFIGFLAGS += --with-tcsetpgrp --with-term-lib="ncursesw"
 CONFIGFLAGS += --enable-cap --enable-pcre
 CONFIGFLAGS += --enable-readnullcmd=pager
 CONFIGFLAGS += --enable-custom-patchlevel=Debian
+CONFIGFLAGS += --enable-additional-fpath=/usr/share/zsh/vendor-functions,/usr/share/zsh/vendor-completions
 
 STATICFLAGS = --disable-dynamic --enable-ldflags=-static
 ifneq (zsh-beta,$(package))
