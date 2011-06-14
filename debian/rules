@@ -305,6 +305,7 @@ binary-arch-static:	checkroot build-static
 	$(INSTALL_DIR) debian/tmp-static/usr/share/man/man1/
 	cd debian/tmp-static && $(INSTALL_DIR) bin \
 		usr/share/doc/$(package)-static \
+		usr/share/lintian/overrides \
 		DEBIAN
 
 	$(INSTALL_SCRIPT) debian/static.prerm debian/tmp-static/DEBIAN/prerm
@@ -312,6 +313,7 @@ binary-arch-static:	checkroot build-static
 	$(INSTALL_SCRIPT) debian/static.postrm debian/tmp-static/DEBIAN/postrm
 
 	$(INSTALL_FILE) debian/changelog debian/tmp-static/usr/share/doc/$(package)-static/changelog.Debian
+	$(INSTALL_FILE) debian/$(package)-static.lintian-overrides debian/tmp-static/usr/share/lintian/overrides/$(package)-static
 
 	awk 'BEGIN { print "The following modules are statically-compiled into the static $(package) binary:\n"; } /link=static/ { printf "%s (%s %s)\n", substr($$1,6), $$4, $$5; }' obj-static/config.modules >debian/tmp-static/usr/share/doc/$(package)-static/README.Debian
 
