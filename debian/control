@@ -11,7 +11,6 @@ Vcs-Browser: http://git.debian.org/?p=collab-maint/zsh.git;a=summary
 
 Package: zsh
 Architecture: any
-Section: shells
 Depends: ${shlibs:Depends}
 Recommends: ${shlibs:Recommends}
 Suggests: zsh-doc
@@ -41,7 +40,6 @@ Description: zsh documentation - info/HTML format
 
 Package: zsh-static
 Architecture: any
-Section: shells
 Depends: ${shlibs:Depends}, zsh
 Suggests: zsh-doc
 Description: A shell with lots of features (static link)
