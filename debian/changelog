@@ -1,6 +1,7 @@
 zsh (4.3.12-1) unstable; urgency=low
 
-  * New upstream release (Closes: #627046)
+  * New upstream release
+    - Fixes typo in make-kpkg completion (Closes: #627046)
   * [b495ba1e] Removing upstream patches due to new release
   * [f575f568] Add urcl script for changelog updates at upstream releases
   * [8bcd117f] at2quilt: Updating autotools patches
