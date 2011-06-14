@@ -14,7 +14,7 @@ Architecture: any
 Depends: ${shlibs:Depends}
 Recommends: ${shlibs:Recommends}
 Suggests: zsh-doc
-Description: A shell with lots of features
+Description: shell with lots of features
  Zsh is a UNIX command interpreter (shell) usable as an
  interactive login shell and as a shell script command
  processor. Of the standard shells, zsh most closely resembles
@@ -42,7 +42,7 @@ Package: zsh-static
 Architecture: any
 Depends: ${shlibs:Depends}, zsh
 Suggests: zsh-doc
-Description: A shell with lots of features (static link)
+Description: shell with lots of features (static link)
  Zsh is a UNIX command interpreter (shell) usable as an
  interactive login shell and as a shell script command
  processor. Of the standard shells, zsh most closely resembles
@@ -56,7 +56,7 @@ Description: A shell with lots of features (static link)
 Package: zsh-dev
 Architecture: any
 Section: libdevel
-Description: A shell with lots of features (development files)
+Description: shell with lots of features (development files)
  Zsh is a UNIX command interpreter (shell) usable as an
  interactive login shell and as a shell script command
  processor. Of the standard shells, zsh most closely resembles
@@ -73,7 +73,7 @@ Architecture: any
 Section: debug
 Priority: extra
 Depends: zsh (= ${binary:Version})
-Description: A shell with lots of features (debugging symbols)
+Description: shell with lots of features (debugging symbols)
  Zsh is a UNIX command interpreter (shell) usable as an
  interactive login shell and as a shell script command
  processor. Of the standard shells, zsh most closely resembles
