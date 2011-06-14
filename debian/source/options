@@ -1,0 +1,1 @@
+extend-diff-ignore='^(Util/difflog\.pl|configure|config\.h\.in)$'
