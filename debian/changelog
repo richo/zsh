@@ -1,5 +1,6 @@
 zsh (4.3.12-1) unstable; urgency=low
 
+  [ Frank Terbeck ]
   * New upstream release
     - Fixes typo in make-kpkg completion (Closes: #627046)
   * [b495ba1e] Removing upstream patches due to new release
@@ -12,7 +13,10 @@ zsh (4.3.12-1) unstable; urgency=low
   * [b70d6102] Workflow updates
   * [250d8bd4] rules: system.h was renamed to zsh_system.h
 
- -- Frank Terbeck <ft@bewatermyfriend.org>  Thu, 02 Jun 2011 18:15:39 +0200
+  [ Axel Beckert ]
+  * Bump Standards-Version to 3.9.2 (no changes)
+
+ -- Axel Beckert <abe@debian.org>  Tue, 14 Jun 2011 15:48:37 +0200
 
 zsh (4.3.11-5) unstable; urgency=low
 
