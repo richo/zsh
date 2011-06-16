@@ -1,4 +1,4 @@
-zsh (4.3.12-1) UNRELEASED; urgency=low
+zsh (4.3.12-1) unstable; urgency=low
 
   [ Frank Terbeck ]
   * New upstream release
@@ -18,9 +18,10 @@ zsh (4.3.12-1) UNRELEASED; urgency=low
   * [72c39771] debian/watch: Prefer .tar.bz2 over .tar.gz
   * [71716e7f] Add Frank Terbeck to Uploaders, so Lintian doesn't regard
     his changelog entries as NMUs
-  * [30777d4c] Fixed lintian warning "binary-control-field-duplicates-source"
-  * [6629343a] Fixed lintian warning "maintainer-script-without-set-e"
-  * [4cbb6b9f] Fixed lintian warning "description-synopsis-starts-with-article"
+  * Fixed some issues reported by Lintian:
+    - [30777d4c] binary-control-field-duplicates-source
+    - [6629343a, 00e23c14] maintainer-script-without-set-e
+    - [4cbb6b9f] description-synopsis-starts-with-article
   * [ff82f833] Override Lintian warnings about statically linked stuff in
     zsh-static
   * [7096bf4f] debian/source/options: Ignore Util/difflog.pl, configure
@@ -28,7 +29,7 @@ zsh (4.3.12-1) UNRELEASED; urgency=low
   * [0882d862] Abort package build in case of unexpected changes to
     upstream code
 
- -- Axel Beckert <abe@debian.org>  Tue, 14 Jun 2011 21:29:53 +0200
+ -- Axel Beckert <abe@debian.org>  Thu, 16 Jun 2011 02:02:04 +0200
 
 zsh (4.3.11-5) unstable; urgency=low
 
