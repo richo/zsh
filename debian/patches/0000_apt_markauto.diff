@@ -1,0 +1,20 @@
+This fixes #631795: <http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=631795>.
+Included upstream:  <http://www.zsh.org/mla/workers/2011/msg00947.html>.
+
+Patch from: Sebastian Ramacher <s.ramacher@gmx.at>
+
+Index: pkg-zsh/Completion/Debian/Command/_apt
+===================================================================
+--- pkg-zsh.orig/Completion/Debian/Command/_apt	2011-06-28 23:16:41.000000000 +0200
++++ pkg-zsh/Completion/Debian/Command/_apt	2011-06-28 23:16:41.000000000 +0200
+@@ -438,7 +438,9 @@
+     /$'build-dep\0'/ /$'[^\0]#\0'/ ':packages::_deb_packages "$expl_packages[@]" avail' \# \| \
+     /$'autoremove\0'/ /$'[^\0]#\0'/ ':packages::_deb_packages "$expl_packages[@]" installed' \# \| \
+     /$'help\0/' \| \
+-    /"[]"/	':argument-1::compadd "$expl_action[@]" update upgrade install remove purge dist-upgrade dselect-upgrade clean autoclean check source build-dep autoremove help'
++    /$'markauto\0'/ /$'[^\0]#\0'/ ':packages::_deb_packages "$expl_packages[@]" installed' \# \| \
++    /$'unmarkauto\0'/ /$'[^\0]#\0'/ ':packages::_deb_packages "$expl_packages[@]" installed' \# \| \
++    /"[]"/	':argument-1::compadd "$expl_action[@]" update upgrade install remove purge dist-upgrade dselect-upgrade clean autoclean check source build-dep autoremove help markauto unmarkauto'
+ 
+   _apt-get () {
+     local expl_action expl_packages
