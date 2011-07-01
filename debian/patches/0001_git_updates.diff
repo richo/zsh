@@ -1,0 +1,112 @@
+This is an update for the _git completion. It's actually a number of patches
+squashed into one:
+
+    <http://www.zsh.org/mla/workers/2011/msg00952.html>
+    <http://www.zsh.org/mla/workers/2011/msg00953.html>
+    <http://www.zsh.org/mla/workers/2011/msg00955.html>
+    <http://www.zsh.org/mla/workers/2011/msg00961.html>
+
+Diffstat:
+
+ _git |   66 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 65 insertions(+), 1 deletion(-)
+
+These are included to fix `#630906'. All of them are included upstream.
+
+
+Index: pkg-zsh/Completion/Unix/Command/_git
+===================================================================
+--- pkg-zsh.orig/Completion/Unix/Command/_git	2011-07-01 09:58:04.000000000 +0200
++++ pkg-zsh/Completion/Unix/Command/_git	2011-07-01 09:58:04.000000000 +0200
+@@ -17,6 +17,16 @@
+ #
+ # You could even create a function _git-foo() to handle specific completion
+ # for that command.
++#
++# When _git does not know a given sub-command (say `bar'), it falls back to
++# completing file names for all arguments to that sub command. I.e.:
++#
++#     % git bar <tab>
++#
++# ...will complete file names. If you do *not* want that fallback to be used,
++# use the `use-fallback' style like this:
++#
++#     % zstyle ':completion:*:*:git*:*' use-fallback false
+ 
+ # TODO: There is still undocumented configurability in here.
+ 
+@@ -4603,6 +4613,15 @@
+   _describe -t plumbing-sync-commands 'plumbing sync command' plumbing_sync_commands && ret=0
+   _describe -t plumbing-sync-helper-commands 'plumbing sync helper command' plumbing_sync_helper_commands && ret=0
+   _describe -t plumbing-internal-helper-commands 'plumbing internal helper command' plumbing_internal_helper_commands && ret=0
++  local -a addons
++  local a
++  for a in $_git_third_party; do
++      (( ${+commands[git-${a%%:*}]} )) && addons+=( $a )
++  done
++  _describe -t third-party-addons 'third party addon' addons && ret=0
++  local -a user_commands
++  zstyle -a ":completion:${curcontext}:" user-commands user_commands || user_commands=()
++  _describe -t user-specific-commands 'user specific command' user_commands && ret=0
+   return ret
+ }
+ 
+@@ -6023,7 +6042,14 @@
+       (option-or-argument)
+         curcontext=${curcontext%:*:*}:git-$words[1]:
+ 
+-        _call_function ret _git-$words[1]
++        if (( ${+functions[_git-$words[1]]} )); then
++            _git-$words[1]
++        elif zstyle -T ":completion:${curcontext}:" use-fallback; then
++            _path_files
++            ret=$?
++        else
++            _message 'Unknown sub-command'
++        fi
+         ;;
+     esac
+   else
+@@ -6032,4 +6058,42 @@
+   return ret
+ }
+ 
++# Handle add-on completions. Say you got a third party add-on `foo'. What you
++# want to do is write your completion as `_git-foo' and this code will pick it
++# up. That should be a regular compsys function, which starts like this:
++#
++#  #compdef git-foo
++#
++# In addition to what compinit does, this also reads the second line of the
++# completion. If that matches "#desc:*" the part behind "#desc:" will be used
++# as the addon's description. Like this:
++#
++#  #desc:checks git's foobar value
++local addon input i desc
++typeset -gUa _git_third_party
++for addon in ${^fpath}/_git-*~*~(.N); do
++    if [[ -n ${(M)_git_third_party:#${${addon:t}#_git-}*} ]]; then
++        # This makes sure only the first _git-foo in $fpath gets read.
++        continue
++    fi
++    # Read the second line of the file.
++    i=1
++    desc=
++    while read input; do
++        if (( i == 2 )); then
++            desc=$input
++            break
++        fi
++        (( i++ ))
++    done < $addon
++    # Setup `$desc' appropriately.
++    if [[ $desc != '#desc:'* ]]; then
++        desc=
++    else
++        desc=${desc#\#desc}
++    fi
++    # Add the addon's completion.
++    _git_third_party+=( ${${addon:t}#_git-}$desc )
++done
++
+ _git
