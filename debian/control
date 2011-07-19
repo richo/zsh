@@ -1,7 +1,7 @@
 Source: zsh
 Section: shells
 Priority: optional
-Build-Depends: bsdmainutils, groff-base, libcap-dev [!hurd-i386 !kfreebsd-i386 !kfreebsd-amd64], libncursesw5-dev, libpcre3-dev, texi2html (>= 1.76-3), texinfo, texlive-latex-base, yodl
+Build-Depends: bsdmainutils, groff-base, libcap-dev [!hurd-any !kfreebsd-any !kfreebsd-any], libncursesw5-dev, libpcre3-dev, texi2html (>= 1.76-3), texinfo, texlive-latex-base, yodl
 Maintainer: Debian Zsh Maintainers <pkg-zsh-devel@lists.alioth.debian.org>
 Uploaders: Michael Prokop <mika@debian.org>, Axel Beckert <abe@debian.org>, Clint Adams <clint@debian.org>, Frank Terbeck <ft@bewatermyfriend.org>
 Standards-Version: 3.9.2
