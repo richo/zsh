@@ -3,3 +3,4 @@ deb_0001_at_config_h_in.diff
 0000_apt_markauto.diff
 0001_git_updates.diff
 0002_aptitude_dash_F_completion.diff
+0003_bts_completion_update.diff
