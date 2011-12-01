@@ -607,7 +607,7 @@ callcompfunc(char *s, char *fn)
 	    if (rdstr)
 		compredirect = rdstr;
 	    kset |= CP_REDIRECT;
-	} else
+	} else {
 	    switch (linwhat) {
 	    case IN_ENV:
 		compcontext = (linarr ? "array_value" : "value");
@@ -637,6 +637,7 @@ callcompfunc(char *s, char *fn)
 		    aadd = 1;
 		}
 	    }
+	}
 	compcontext = ztrdup(compcontext);
 	if (compwords)
 	    freearray(compwords);
@@ -1099,7 +1100,7 @@ mod_export char *
 check_param(char *s, int set, int test)
 {
     char *p;
-    int found = 0;
+    int found = 0, qstring = 0;
 
     zsfree(parpre);
     parpre = NULL;
@@ -1126,6 +1127,7 @@ check_param(char *s, int set, int test)
 		!(*p == String && p[1] == Snull) &&
 		!(*p == Qstring && p[1] == '\'')) {
 		found = 1;
+		qstring = (*p == Qstring);
 		break;
 	    }
 	}
@@ -1150,7 +1152,7 @@ check_param(char *s, int set, int test)
 	p[1] != Inpar && p[1] != Inbrack && p[1] != Snull) {
 	/* This is a parameter expression, not $(...), $[...], $'...'. */
 	char *b = p + 1, *e = b, *ie;
-	int n = 0, br = 1, nest = 0;
+	int br = 1, nest = 0;
 
 	if (*b == Inbrace) {
 	    char *tb = b;
@@ -1161,7 +1163,18 @@ check_param(char *s, int set, int test)
 
 	    /* Ignore the possible (...) flags. */
 	    b++, br++;
-	    n = skipparens(Inpar, Outpar, &b);
+	    if ((qstring ? skipparens('(', ')', &b) :
+		 skipparens(Inpar, Outpar, &b)) > 0) {
+		/*
+		 * We are still within the parameter flags.  There's no
+		 * point trying to do anything clever here with
+		 * parameter names.  Instead, just report that we are in
+		 * a brace parameter but let the completion function
+		 * decide what to do about it.
+		 */
+		ispar = 2;
+		return NULL;
+	    }
 
 	    for (tb = p - 1; tb > s && *tb != Outbrace && *tb != Inbrace; tb--);
 	    if (tb > s && *tb == Inbrace && (tb[-1] == String || *tb == Qstring))
@@ -1204,7 +1217,7 @@ check_param(char *s, int set, int test)
 	}
 
 	/* Now make sure that the cursor is inside the name. */
-	if (offs <= e - s && offs >= b - s && n <= 0) {
+	if (offs <= e - s && offs >= b - s) {
 	    char sav;
 
 	    if (br) {
@@ -1465,7 +1478,7 @@ set_comp_sep(void)
      *      when stripping single quotes: 1 for RCQUOTES, 3 otherwise
      *      (because we leave a "'" in the final string).
      */
-    int dq = 0, odq, sq = 0, osq, qttype, sqq = 0, lsq = 0, qa = 0;
+    int dq = 0, odq, sq = 0, qttype, sqq = 0, lsq = 0, qa = 0;
     /* dolq: like sq and dq but for dollars quoting. */
     int dolq = 0;
     /* remember some global variable values (except lp is local) */
@@ -1570,7 +1583,6 @@ set_comp_sep(void)
 
     }
     odq = dq;
-    osq = sq;
     inpush(dupstrspace(tmp), 0, NULL);
     zlemetaline = tmp;
     /*
@@ -3294,7 +3306,7 @@ dupmatch(Cmatch m, int nbeg, int nend)
 mod_export int
 permmatches(int last)
 {
-    Cmgroup g = amatches, n, opm;
+    Cmgroup g = amatches, n;
     Cmatch *p, *q;
     Cexpl *ep, *eq, e, o;
     LinkList mlist;
@@ -3308,7 +3320,6 @@ permmatches(int last)
     }
     newmatches = fi = 0;
 
-    opm = pmatches;
     pmatches = lmatches = NULL;
     nmatches = smatches = diffmatches = 0;
 

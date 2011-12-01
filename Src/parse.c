@@ -1465,6 +1465,10 @@ par_funcdef(void)
 	    ecssub = oecssub;
 	    YYERRORV(oecused);
 	}
+	if (num == 0) {
+	    /* Anonymous function, possibly with arguments */
+	    incmdpos = 0;
+	}
 	zshlex();
     } else if (unset(SHORTLOOPS)) {
 	lineno += oldlineno;
@@ -1480,12 +1484,25 @@ par_funcdef(void)
     ecbuf[p + num + 4] = ecnpats;
     ecbuf[p + 1] = num;
 
-    lineno += oldlineno;
     ecnpats = onp;
     ecssub = oecssub;
     ecnfunc++;
 
     ecbuf[p] = WCB_FUNCDEF(ecused - 1 - p);
+
+    if (num == 0) {
+	/* Unnamed function */
+	int parg = ecadd(0);
+	ecadd(0);
+	while (tok == STRING) {
+	    ecstr(tokstr);
+	    num++;
+	    zshlex();
+	}
+	ecbuf[parg] = ecused - parg; /*?*/
+	ecbuf[parg+1] = num;
+    }
+    lineno += oldlineno;
 }
 
 /*
@@ -1707,13 +1724,17 @@ par_simple(int *complex, int nr)
 		    ecssub = oecssub;
 		    YYERROR(oecused);
 		}
+		if (argc == 0) {
+		    /* Anonymous function, possibly with arguments */
+		    incmdpos = 0;
+		}
 		zshlex();
 	    } else {
-		int ll, sl, pl, c = 0;
+		int ll, sl, c = 0;
 
 		ll = ecadd(0);
 		sl = ecadd(0);
-		pl = ecadd(WCB_PIPE(WC_PIPE_END, 0));
+		(void)ecadd(WCB_PIPE(WC_PIPE_END, 0));
 
 		if (!par_cmd(&c)) {
 		    cmdpop();
@@ -1730,12 +1751,25 @@ par_simple(int *complex, int nr)
 	    ecbuf[p + argc + 3] = ecsoffs - so;
 	    ecbuf[p + argc + 4] = ecnpats;
 
-	    lineno += oldlineno;
 	    ecnpats = onp;
 	    ecssub = oecssub;
 	    ecnfunc++;
 
 	    ecbuf[p] = WCB_FUNCDEF(ecused - 1 - p);
+
+	    if (argc == 0) {
+		/* Unnamed function */
+		int parg = ecadd(0);
+		ecadd(0);
+		while (tok == STRING) {
+		    ecstr(tokstr);
+		    argc++;
+		    zshlex();
+		}
+		ecbuf[parg] = ecused - parg; /*?*/
+		ecbuf[parg+1] = argc;
+	    }
+	    lineno += oldlineno;
 
 	    isfunc = 1;
 	    isnull = 0;

@@ -1085,7 +1085,7 @@ Some of these styles are tested first for every possible tag
 corresponding to a type of match, and if no style was found, for the
 tt(default) tag.  The most notable styles of this type are tt(menu), 
 tt(list-colors) and styles controlling completion listing such as 
-tt(list-packed) and tt(last-prompt)).  When tested for the tt(default)
+tt(list-packed) and tt(last-prompt).  When tested for the tt(default)
 tag, only the var(function) field of the context will be set so that
 a style using the default tag will normally be defined along the lines of:
 
@@ -1684,8 +1684,8 @@ will be considered as possible completions.  If it is set to
 `tt(current)', the word the cursor is on will not be considered as a
 possible completion.  The value `tt(current-shown)' is similar but only
 applies if the list of completions is currently shown on the screen.
-Finally, if the style is set to `tt(other)', no word apart from the
-current one will be considered as a possible completion.
+Finally, if the style is set to `tt(other)', all words on the line except
+for the current one will be excluded from the possible completions.
 
 The values `tt(current)' and `tt(current-shown)' are a bit like the
 opposite of the tt(accept-exact) style:  only strings with
@@ -4387,7 +4387,9 @@ tt(ambiguous), tt(special-dirs), tt(list-suffixes) and tt(file-sort)
 described above.
 )
 findex(_pick_variant)
-item(tt(_pick_variant [ tt(-c) var(command) ] [ tt(-r) var(name) ] var(label)tt(=)var(pattern) ... var(label) [ var(args) ... ]))(
+xitem(tt(_pick_variant) [ tt(-b) var(builtin-label) ] [ tt(-c)
+var(command) ] [ tt(-r) var(name) ])
+item(   var(label)tt(=)var(pattern) ... var(label) [ var(args) ... ])(
 This function is used to resolve situations where a single command name
 requires more than one type of handling, either because it
 has more than one variant or because there is a name clash between two
@@ -4402,6 +4404,10 @@ var(label)tt(=)var(pattern); if the output of `var(command) var(args)
 tt(...)' contains var(pattern), then tt(label) is selected as the label
 for the command variant.  If none of the patterns match, the final
 command label is selected and status 1 is returned.
+
+If the `tt(-b) var(builtin-label)' is given, the command is tested to
+see if it is provided as a shell builtin, possibly autoloaded; if so,
+the label var(builtin-label) is selected as the label for the variant.
 
 If the `tt(-r) var(name)' is given, the var(label) picked is stored in
 the parameter named var(name).

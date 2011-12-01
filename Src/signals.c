@@ -489,16 +489,24 @@ wait_for_processes(void)
 	 * Find the process and job containing this pid and
 	 * update it.
 	 */
-	pn = NULL;
 	if (findproc(pid, &jn, &pn, 0)) {
+	    if (((jn->stat & STAT_BUILTIN) ||
+		 (list_pipe &&
+		  (thisjob == -1 ||
+		   (jobtab[thisjob].stat & STAT_BUILTIN)))) &&
+		WIFSTOPPED(status) && WSTOPSIG(status) == SIGTSTP) {
+		killjb(jn, SIGCONT);
+		zwarn("job can't be suspended");
+	    } else {
 #if defined(HAVE_WAIT3) && defined(HAVE_GETRUSAGE)
-	    struct timezone dummy_tz;
-	    gettimeofday(&pn->endtime, &dummy_tz);
-	    pn->status = status;
-	    pn->ti = ru;
+		struct timezone dummy_tz;
+		gettimeofday(&pn->endtime, &dummy_tz);
+		pn->status = status;
+		pn->ti = ru;
 #else
-	    update_process(pn, status);
+		update_process(pn, status);
 #endif
+	    }
 	    update_job(jn);
 	} else if (findproc(pid, &jn, &pn, 1)) {
 	    pn->status = status;
@@ -1185,7 +1193,7 @@ dotrapargs(int sig, int *sigtr, void *sigfn)
     traplocallevel = locallevel;
     runhookdef(BEFORETRAPHOOK, NULL);
     if (*sigtr & ZSIG_FUNC) {
-	int osc = sfcontext;
+	int osc = sfcontext, old_incompfunc = incompfunc;
 	HashNode hn = gettrapnode(sig, 0);
 
 	args = znewlinklist();
@@ -1211,8 +1219,10 @@ dotrapargs(int sig, int *sigtr, void *sigfn)
 	trapisfunc = isfunc = 1;
 
 	sfcontext = SFC_SIGNAL;
+	incompfunc = 0;
 	doshfunc((Shfunc)sigfn, args, 1);
 	sfcontext = osc;
+	incompfunc= old_incompfunc;
 	freelinklist(args, (FreeFunc) NULL);
 	zsfree(name);
     } else {

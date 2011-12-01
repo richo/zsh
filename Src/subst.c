@@ -162,6 +162,8 @@ stringsubst(LinkList list, LinkNode node, int ssub, int asssub)
 		subst = getproc(str, &rest);	/* <(...) or >(...) */
 	    else
 		subst = getoutputfile(str, &rest);	/* =(...) */
+	    if (errflag)
+		return NULL;
 	    if (!subst)
 		subst = "";
 
@@ -245,7 +247,10 @@ stringsubst(LinkList list, LinkNode node, int ssub, int asssub)
 	    if (endchar == Outpar && str2[1] == '(' && str[-2] == ')') {
 		/* Math substitution of the form $((...)) */
 		str[-2] = '\0';
-		str = arithsubst(str2 + 2, &str3, str);
+		if (isset(EXECOPT))
+		    str = arithsubst(str2 + 2, &str3, str);
+		else
+		    strncpy(str3, str2, 1);
 		setdata(node, (void *) str3);
 		continue;
 	    }
@@ -2080,7 +2085,16 @@ paramsubst(LinkList l, LinkNode n, char **str, int qt, int ssub)
 		    || (cc = s[1]) == '*' || cc == Star || cc == '@'
 		    || cc == '?' || cc == Quest
 		    || cc == '$' || cc == String || cc == Qstring
-		    || cc == '#' || cc == Pound
+		    /*
+		     * Me And My Squiggle:
+		     * ${##} is the length of $#, but ${##foo}
+		     * is $# with a "foo" removed from the start.
+		     * If someone had defined the *@!@! language
+		     * properly in the first place we wouldn't
+		     * have this nonsense.
+		     */
+		    || ((cc == '#' || cc == Pound) &&
+			s[2] == Outbrace)
 		    || cc == '-' || (cc == ':' && s[2] == '-')
 		    || (isstring(cc) && (s[2] == Inbrace || s[2] == Inpar)))) {
 	    getlen = 1 + whichlen, s++;
@@ -2706,19 +2720,21 @@ paramsubst(LinkList l, LinkNode n, char **str, int qt, int ssub)
 	case '?':
 	case Quest:
 	    if (vunset) {
-		*idend = '\0';
-		zerr("%s: %s", idbeg, *s ? s : "parameter not set");
-		if (!interact) {
-		    if (mypid == getpid()) {
-			/*
-			 * paranoia: don't check for jobs, but there shouldn't
-			 * be any if not interactive.
-			 */
-			stopmsg = 1;
-			zexit(1, 0);
-		    } else
-			_exit(1);
-		}
+                if (isset(EXECOPT)) {
+                    *idend = '\0';
+                    zerr("%s: %s", idbeg, *s ? s : "parameter not set");
+                    if (!interact) {
+                        if (mypid == getpid()) {
+                            /*
+                             * paranoia: don't check for jobs, but there
+                             * shouldn't be any if not interactive.
+                             */
+                            stopmsg = 1;
+                            zexit(1, 0);
+                        } else
+                            _exit(1);
+                    }
+                }
 		return NULL;
 	    }
 	    break;
@@ -2839,7 +2855,7 @@ paramsubst(LinkList l, LinkNode n, char **str, int qt, int ssub)
 	    char *check_offset = check_colon_subscript(s, &check_offset2);
 	    if (check_offset) {
 		zlong offset = mathevali(check_offset);
-		zlong length;
+		zlong length = 0;
 		int length_set = 0;
 		int offset_hack_argzero = 0;
 		if (errflag)

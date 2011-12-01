@@ -398,7 +398,18 @@ mod_export char *cmdstr;
 /**/
 mod_export char *varname;
 
-/* != 0 if we are in a subscript */
+/*
+ * != 0 if we are in a subscript.
+ * Of course, this being the completion code, you're expected to guess
+ * what the different numbers actually mean, but here's a cheat:
+ * 1: Key of an ordinary array
+ * 2: Key of a hash
+ * 3: Ummm.... this appears to be a special case of 2.  After a lot
+ *    of uncommented code looking for groups of brackets, we suddenly
+ *    decide to set it to 2.  The only upshot seems to be that compctl
+ *    then doesn't add a matching ']' at the end, so I think it means
+ *    there's one there already.
+ */
 
 /**/
 mod_export int insubscr;
@@ -529,7 +540,7 @@ parambeg(char *s)
 	 * or $'...').
 	 */
 	char *b = p + 1, *e = b;
-	int n = 0, br = 1, nest = 0;
+	int n = 0, br = 1;
 
 	if (*b == Inbrace) {
 	    char *tb = b;
@@ -541,10 +552,6 @@ parambeg(char *s)
 	    /* Ignore the possible (...) flags. */
 	    b++, br++;
 	    n = skipparens(Inpar, Outpar, &b);
-
-	    for (tb = p - 1; tb > s && *tb != Outbrace && *tb != Inbrace; tb--);
-	    if (tb > s && *tb == Inbrace && (tb[-1] == String || *tb == Qstring))
-		nest = 1;
 	}
 
 	/* Ignore the stuff before the parameter name. */
@@ -1862,6 +1869,10 @@ get_comp_string(void)
 		}
 	    } else if (p < curs) {
 		if (*p == Outbrace) {
+		    /*
+		     * HERE: strip and remember code from last
+		     * comma to here.
+		     */
 		    cant = 1;
 		    break;
 		}
@@ -1869,6 +1880,16 @@ get_comp_string(void)
 		    char *tp = p;
 
 		    if (!skipparens(Inbrace, Outbrace, &tp)) {
+			/*
+			 * Balanced brace: skip.
+			 * We only deal with unfinished braces, so
+			 *  something{foo<x>bar,morestuff}else
+			 * doesn't work
+			 *
+			 * HERE: instead, continue, look for a comma.
+			 * Stack tp and brace for popping when we
+			 * find a comma at each level.
+			 */
 			i += tp - p - 1;
 			dp += tp - p - 1;
 			p = tp - 1;
@@ -1911,10 +1932,16 @@ get_comp_string(void)
 		    hascom = 1;
 		}
 	    } else {
+		/* On or after the cursor position */
 		if (*p == Inbrace) {
 		    char *tp = p;
 
 		    if (!skipparens(Inbrace, Outbrace, &tp)) {
+			/*
+			 * Balanced braces after the cursor.
+			 * Could do the same with these as
+			 * those before the cursor.
+			 */
 			i += tp - p - 1;
 			dp += tp - p - 1;
 			p = tp - 1;
@@ -1925,6 +1952,14 @@ get_comp_string(void)
 		    break;
 		}
 		if (p == curs) {
+		    /*
+		     * We've reached the cursor position.
+		     * If there's a pending open brace at this
+		     * point we need to stack the text.
+		     * We've marked the bit we don't want from
+		     * bbeg to bend, which might be a comma
+		     * between the opening brace and us.
+		     */
 		    if (bbeg) {
 			Brinfo new;
 			int len = bend - bbeg;
@@ -1954,10 +1989,23 @@ get_comp_string(void)
 		    bbeg = NULL;
 		}
 		if (*p == Comma) {
+		    /*
+		     * Comma on or after cursor.
+		     * We set bbeg to NULL at the cursor; here
+		     * it's being used to find the first comma
+		     * afterwards.
+		     */
 		    if (!bbeg)
 			bbeg = p;
 		    hascom = 2;
 		} else if (*p == Outbrace) {
+		    /*
+		     * Closing brace on or after the cursor.
+		     * Not sure how this can be after the cursor;
+		     * if it was matched, wouldn't we have skipped
+		     * over the group, and if it wasn't, surely we're
+		     * not interested in it?
+		     */
 		    Brinfo new;
 		    int len;
 
@@ -2150,10 +2198,6 @@ doexpansion(char *s, int lst, int olst, int explincmd)
 	ss = quotename(ss, NULL);
 	untokenize(ss);
 	inststr(ss);
-#if 0
-	if (olst != COMP_EXPAND_COMPLETE || nonempty(vl) ||
-	    (zlemetacs && zlemetaline[zlemetacs-1] != '/')) {
-#endif
 	if (nonempty(vl) || !first) {
 	    spaceinline(1);
 	    zlemetaline[zlemetacs++] = ' ';

@@ -50,20 +50,20 @@ int noerrexit;
  * noerrs = 1: suppress error messages
  * noerrs = 2: don't set errflag on parse error, either
  */
- 
+
 /**/
 mod_export int noerrs;
- 
+
 /* do not save history on exec and exit */
 
 /**/
 int nohistsave;
- 
+
 /* error/break flag */
- 
+
 /**/
 mod_export int errflag;
- 
+
 /*
  * State of trap return value.  Value is from enum trap_state.
  */
@@ -88,23 +88,23 @@ int trap_state;
  * - non-negative in a trap once it was triggered.  It should remain
  *   non-negative until restored after execution of the trap.
  */
- 
+
 /**/
 int trap_return;
- 
+
 /* != 0 if this is a subshell */
- 
+
 /**/
 int subsh;
- 
+
 /* != 0 if we have a return pending */
- 
+
 /**/
 mod_export int retflag;
 
 /**/
 long lastval2;
- 
+
 /* The table of file descriptors.  A table element is zero if the  *
  * corresponding fd is not used by the shell.  It is greater than  *
  * 1 if the fd is used by a <(...) or >(...) substitution and 1 if *
@@ -148,12 +148,12 @@ int fdtable_flocks;
 mod_export int zleactive;
 
 /* pid of process undergoing 'process substitution' */
- 
+
 /**/
 pid_t cmdoutpid;
- 
+
 /* exit status of process undergoing 'process substitution' */
- 
+
 /**/
 int cmdoutval;
 
@@ -166,7 +166,7 @@ int cmdoutval;
 /**/
 int use_cmdoutval;
 
-/* The context in which a shell function is called, see SFC_* in zsh.h. */ 
+/* The context in which a shell function is called, see SFC_* in zsh.h. */
 
 /**/
 mod_export int sfcontext;
@@ -239,7 +239,7 @@ parse_string(char *s, int reset_lineno)
 
 /**/
 mod_export struct rlimit current_limits[RLIM_NLIMITS], limits[RLIM_NLIMITS];
- 
+
 /**/
 mod_export int
 zsetlimit(int limnum, char *nam)
@@ -340,7 +340,7 @@ zfork(struct timeval *tv)
  *
  * (when waiting for the grep, ignoring execpline2 for now). At this time,
  * zsh has built two job-table entries for it: one for the cat and one for
- * the grep. If the user hits ^Z at this point (and jobbing is used), the 
+ * the grep. If the user hits ^Z at this point (and jobbing is used), the
  * shell is notified that the grep was suspended. The list_pipe flag is
  * used to tell the execpline where it was waiting that it was in a pipeline
  * with a shell construct at the end (which may also be a shell function or
@@ -351,7 +351,7 @@ zfork(struct timeval *tv)
  * shell (its pid and the text for it) in the job entry of the cat. The pid
  * is passed down in the list_pipe_pid variable.
  * But there is a problem: the suspended grep is a child of the parent shell
- * and can't be adopted by the sub-shell. So the parent shell also has to 
+ * and can't be adopted by the sub-shell. So the parent shell also has to
  * keep the information about this process (more precisely: this pipeline)
  * by keeping the job table entry it created for it. The fact that there
  * are two jobs which have to be treated together is remembered by setting
@@ -405,7 +405,7 @@ execcursh(Estate state, int do_exec)
     state->pc++;
 
     if (!list_pipe && thisjob != list_pipe_job && !hasprocs(thisjob))
-	deletejob(jobtab + thisjob);
+	deletejob(jobtab + thisjob, 0);
     cmdpush(CS_CURSH);
     execlist(state, 1, do_exec);
     cmdpop();
@@ -528,10 +528,10 @@ isgooderr(int e, char *dir)
 {
     /*
      * Maybe the directory was unreadable, or maybe it wasn't
-     * even a directory. 
+     * even a directory.
      */
     return ((e != EACCES || !access(dir, X_OK)) &&
-	    e != ENOENT && e != ENOTDIR); 
+	    e != ENOENT && e != ENOTDIR);
 }
 
 /*
@@ -639,7 +639,7 @@ execute(LinkList args, int flags, int defpath)
 	    break;
 	}
 
-    /* for command -p, search the default path */ 
+    /* for command -p, search the default path */
     if (defpath) {
 	char *s, pbuf[PATH_MAX];
 	char *dptr, *pe, *ps = DEFAULT_PATH;
@@ -676,7 +676,7 @@ execute(LinkList args, int flags, int defpath)
 	    eno = ee;
 
     } else {
-   
+
 	if ((cn = (Cmdnam) cmdnamtab->getnode(cmdnamtab, arg0))) {
 	    char nn[PATH_MAX], *dptr;
 
@@ -1312,9 +1312,9 @@ sublist_done:
 		donetrap = 1;
 	    }
 	    if (lastval) {
-		int errreturn = isset(ERRRETURN) && 
+		int errreturn = isset(ERRRETURN) &&
 		    (isset(INTERACTIVE) || locallevel || sourcelevel);
-		int errexit = isset(ERREXIT) || 
+		int errexit = isset(ERREXIT) ||
 		    (isset(ERRRETURN) && !errreturn);
 		if (errexit) {
 		    if (sigtrapped[SIGEXIT])
@@ -1434,7 +1434,7 @@ execpline(Estate state, wordcode slcode, int how, int last1)
 	    zclose(opipe[0]);
 	}
 	if (how & Z_DISOWN) {
-	    deletejob(jobtab + thisjob);
+	    deletejob(jobtab + thisjob, 1);
 	    thisjob = -1;
 	}
 	else
@@ -1484,7 +1484,7 @@ execpline(Estate state, wordcode slcode, int how, int last1)
 		    printjob(jn, !!isset(LONGLISTJOBS), 1);
 		}
 		else if (newjob != list_pipe_job)
-		    deletejob(jn);
+		    deletejob(jn, 0);
 		else
 		    lastwj = -1;
 	    }
@@ -1536,7 +1536,7 @@ execpline(Estate state, wordcode slcode, int how, int last1)
 		    else if (pid) {
 			char dummy;
 
-			lpforked = 
+			lpforked =
 			    (killpg(jobtab[list_pipe_job].gleader, 0) == -1 ? 2 : 1);
 			list_pipe_pid = pid;
 			list_pipe_start = bgtime;
@@ -1588,7 +1588,7 @@ execpline(Estate state, wordcode slcode, int how, int last1)
 
 	    if (list_pipe && (lastval & 0200) && pj >= 0 &&
 		(!(jn->stat & STAT_INUSE) || (jn->stat & STAT_DONE))) {
-		deletejob(jn);
+		deletejob(jn, 0);
 		jn = jobtab + pj;
 		if (jn->gleader)
 		    killjb(jn, lastval & ~0200);
@@ -1596,7 +1596,7 @@ execpline(Estate state, wordcode slcode, int how, int last1)
 	    if (list_pipe_child ||
 		((jn->stat & STAT_DONE) &&
 		 (list_pipe || (pline_level && !(jn->stat & STAT_SUBJOB)))))
-		deletejob(jn);
+		deletejob(jn, 0);
 	    thisjob = pj;
 
 	}
@@ -2845,7 +2845,11 @@ execcmd(Estate state, int input, int output, int how, int last1)
 	/* This is a current shell procedure that didn't need to fork.    *
 	 * This includes current shell procedures that are being exec'ed, *
 	 * as well as null execs.                                         */
-	jobtab[thisjob].stat |= STAT_CURSH|STAT_NOPRINT;
+	jobtab[thisjob].stat |= STAT_CURSH;
+	if (!jobtab[thisjob].procs)
+	    jobtab[thisjob].stat |= STAT_NOPRINT;
+	if (is_builtin)
+	  jobtab[thisjob].stat |= STAT_BUILTIN;
     } else {
 	/* This is an exec (real or fake) for an external command.    *
 	 * Note that any form of exec means that the subshell is fake *
@@ -2908,6 +2912,7 @@ execcmd(Estate state, int input, int output, int how, int last1)
 	    }
 	    addfd(forked, save, mfds, fn->fd1, fn->fd2, 1, fn->varid);
 	} else {
+	    int closed;
 	    if (fn->type != REDIR_HERESTR && xpandredir(fn, redir))
 		continue;
 	    if (errflag) {
@@ -2975,17 +2980,16 @@ execcmd(Estate state, int input, int output, int how, int last1)
 			fn->fd1 = (int)getintvalue(v);
 			if (errflag)
 			    bad = 1;
-			else if (fn->fd1 > max_zsh_fd)
-			    bad = 3;
-			else if (fn->fd1 >= 10 &&
+			else if (fn->fd1 <= max_zsh_fd) {
+			    if (fn->fd1 >= 10 &&
 				 fdtable[fn->fd1] == FDT_INTERNAL)
-			    bad = 4;
+				bad = 3;
+			}
 		    }
 		    if (bad) {
 			const char *bad_msg[] = {
 			    "parameter %s does not contain a file descriptor",
 			    "can't close file descriptor from readonly parameter %s",
-			    "file descriptor %d out of range, not closed",
 			    "file descriptor %d used by shell, not closed"
 			};
 			if (bad > 2)
@@ -2995,11 +2999,27 @@ execcmd(Estate state, int input, int output, int how, int last1)
 			execerr();
 		    }
 		}
-		if (!forked && fn->fd1 < 10 && save[fn->fd1] == -2)
+		/*
+		 * Note we may attempt to close an fd beyond max_zsh_fd:
+		 * OK as long as we never look in fdtable for it.
+ 		 */
+		closed = 0;
+		if (!forked && fn->fd1 < 10 && save[fn->fd1] == -2) {
 		    save[fn->fd1] = movefd(fn->fd1);
+		    if (save[fn->fd1] >= 0) {
+			/*
+			 * The original fd is now closed, we don't need
+			 * to do it below.
+			 */
+			closed = 1;
+		    }
+		}
 		if (fn->fd1 < 10)
 		    closemn(mfds, fn->fd1);
-		zclose(fn->fd1);
+		if (!closed && zclose(fn->fd1) < 0) {
+		    zwarn("failed to close file descriptor %d: %e",
+			  fn->fd1, errno);
+		}
 		break;
 	    case REDIR_MERGEIN:
 	    case REDIR_MERGEOUT:
@@ -3008,11 +3028,17 @@ execcmd(Estate state, int input, int output, int how, int last1)
 		if (!checkclobberparam(fn))
 		    fil = -1;
 		else if (fn->fd2 > 9 &&
-			 (fn->fd2 > max_zsh_fd ||
-			  (fdtable[fn->fd2] != FDT_UNUSED &&
-			   fdtable[fn->fd2] != FDT_EXTERNAL) ||
-			  fn->fd2 == coprocin ||
-			  fn->fd2 == coprocout)) {
+			 /*
+			  * If the requested fd is > max_zsh_fd,
+			  * the shell doesn't know about it.
+			  * Just assume the user knows what they're
+			  * doing.
+			  */
+			 (fn->fd2 <= max_zsh_fd &&
+			  ((fdtable[fn->fd2] != FDT_UNUSED &&
+			    fdtable[fn->fd2] != FDT_EXTERNAL) ||
+			   fn->fd2 == coprocin ||
+			   fn->fd2 == coprocout))) {
 		    fil = -1;
 		    errno = EBADF;
 		} else {
@@ -3112,7 +3138,7 @@ execcmd(Estate state, int input, int output, int how, int last1)
 		ESUB_PGRP | ESUB_FAKE;
 	    if (type != WC_SUBSH)
 		flags |= ESUB_KEEPTRAP;
-	    if ((do_exec || (type >= WC_CURSH && last1 == 1)) 
+	    if ((do_exec || (type >= WC_CURSH && last1 == 1))
 		&& !forked)
 		flags |= ESUB_REVERTPGRP;
 	    entersubsh(flags);
@@ -3739,7 +3765,15 @@ parsecmd(char *cmd, char **eptr)
 
     for (str = cmd + 2; *str && *str != Outpar; str++);
     if (!*str || cmd[1] != Inpar) {
-	zerr("oops.");
+	/*
+	 * This can happen if the expression is being parsed
+	 * inside another construct, e.g. as a value within ${..:..} etc.
+	 * So print a proper error message instead of the not very
+	 * useful but traditional "oops".
+ 	 */
+	char *errstr = dupstrpfx(cmd, 2);
+	untokenize(errstr);
+	zerr("unterminated `%s...)'", errstr);
 	return NULL;
     }
     *str = '\0';
@@ -4184,10 +4218,19 @@ execfuncdef(Estate state, UNUSED(int do_exec))
 	     * Anonymous function, execute immediately.
 	     * Function name is "(anon)", parameter list is empty.
 	     */
-	    LinkList args = newlinklist();
+	    LinkList args;
 
+	    state->pc = end;
+	    end += *state->pc++;
+	    args = ecgetlist(state, *state->pc++, EC_DUPTOK, &htok);
+
+	    if (htok && args)
+		execsubst(args);
+
+	    if (!args)
+		args = newlinklist();
 	    shf->node.nam = "(anon)";
-	    addlinknode(args, shf->node.nam);
+	    pushnode(args, shf->node.nam);
 
 	    execshfunc(shf, args);
 	    ret = lastval;
@@ -4238,7 +4281,7 @@ execshfunc(Shfunc shf, LinkList args)
 	 * would be filled by a recursive function. */
 	last_file_list = jobtab[thisjob].filelist;
 	jobtab[thisjob].filelist = NULL;
-	deletejob(jobtab + thisjob);
+	deletejob(jobtab + thisjob, 0);
     }
 
     if (isset(XTRACE)) {
@@ -4267,7 +4310,7 @@ execshfunc(Shfunc shf, LinkList args)
     cmdsp = ocsp;
 
     if (!list_pipe)
-	deletefilelist(last_file_list);
+	deletefilelist(last_file_list, 0);
 }
 
 /* Function to execute the special type of command that represents an *
@@ -4334,6 +4377,7 @@ loadautofn(Shfunc shf, int fksh, int autol)
     }
     if (!prog) {
 	zsfree(fname);
+	popheap();
 	return NULL;
     }
     if (ksh == 2 || (ksh == 1 && isset(KSHAUTOLOAD))) {

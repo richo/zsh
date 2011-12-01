@@ -40,6 +40,11 @@ mod_export char *scriptname;     /* is sometimes a function name */
 /**/
 mod_export char *scriptfilename;
 
+/* != 0 if we are in a new style completion function */
+
+/**/
+mod_export int incompfunc;
+
 #ifdef MULTIBYTE_SUPPORT
 struct widechar_array {
     wchar_t *chars;
@@ -1232,8 +1237,10 @@ callhookfunc(char *name, LinkList lnklst, int arrayp, int *retval)
 	 * to a list of jobs generated in a hook.
 	 */
     int osc = sfcontext, osm = stopmsg, stat = 1, ret = 0;
+    int old_incompfunc = incompfunc;
 
     sfcontext = SFC_HOOK;
+    incompfunc = 0;
 
     if ((shfunc = getshfunc(name))) {
 	ret = doshfunc(shfunc, lnklst, 1);
@@ -1262,6 +1269,7 @@ callhookfunc(char *name, LinkList lnklst, int arrayp, int *retval)
 
     sfcontext = osc;
     stopmsg = osm;
+    incompfunc = old_incompfunc;
 
     if (retval)
 	*retval = ret;
@@ -1683,8 +1691,8 @@ adjustwinsize(int from)
 	winchanged =
 #endif /* TIOCGWINSZ */
 	    resetneeded = 1;
-	zleentry(ZLE_CMD_REFRESH);
 	zleentry(ZLE_CMD_RESET_PROMPT);
+	zleentry(ZLE_CMD_REFRESH);
     }
 }
 
@@ -1802,22 +1810,20 @@ zclose(int fd)
 {
     if (fd >= 0) {
 	/*
-	 * We sometimes zclose() an fd twice where the second
-	 * time is a catch-all in case there was a failure using
-	 * the fd.  This is harmless but we need to trap it
-	 * for the error check here.
+	 * Careful: we allow closing of arbitrary fd's, beyond
+	 * max_zsh_fd.  In that case we don't try anything clever.
 	 */
-	DPUTS2(fd > max_zsh_fd && fdtable[fd] != FDT_UNUSED,
-	       "BUG: fd is %d, max_zsh_fd is %d", fd, max_zsh_fd);
-	if (fdtable[fd] == FDT_FLOCK)
-	    fdtable_flocks--;
-	fdtable[fd] = FDT_UNUSED;
-	while (max_zsh_fd > 0 && fdtable[max_zsh_fd] == FDT_UNUSED)
-	    max_zsh_fd--;
-	if (fd == coprocin)
-	    coprocin = -1;
-	if (fd == coprocout)
-	    coprocout = -1;
+	if (fd <= max_zsh_fd) {
+	    if (fdtable[fd] == FDT_FLOCK)
+		fdtable_flocks--;
+	    fdtable[fd] = FDT_UNUSED;
+	    while (max_zsh_fd > 0 && fdtable[max_zsh_fd] == FDT_UNUSED)
+		max_zsh_fd--;
+	    if (fd == coprocin)
+		coprocin = -1;
+	    if (fd == coprocout)
+		coprocout = -1;
+	}
 	return close(fd);
     }
     return -1;
@@ -2492,16 +2498,18 @@ spckword(char **s, int hist, int cmd, int ask)
 	return;
     if (!(*s)[0] || !(*s)[1])
 	return;
-    if (shfunctab->getnode(shfunctab, *s) ||
-	builtintab->getnode(builtintab, *s) ||
-	cmdnamtab->getnode(cmdnamtab, *s) ||
-	aliastab->getnode(aliastab, *s)  ||
-	reswdtab->getnode(reswdtab, *s))
-	return;
-    else if (isset(HASHLISTALL)) {
-	cmdnamtab->filltable(cmdnamtab);
-	if (cmdnamtab->getnode(cmdnamtab, *s))
+    if (cmd) {
+	if (shfunctab->getnode(shfunctab, *s) ||
+	    builtintab->getnode(builtintab, *s) ||
+	    cmdnamtab->getnode(cmdnamtab, *s) ||
+	    aliastab->getnode(aliastab, *s)  ||
+	    reswdtab->getnode(reswdtab, *s))
 	    return;
+	else if (isset(HASHLISTALL)) {
+	    cmdnamtab->filltable(cmdnamtab);
+	    if (cmdnamtab->getnode(cmdnamtab, *s))
+		return;
+	}
     }
     t = *s;
     if (*t == Tilde || *t == Equals || *t == String)
@@ -2615,6 +2623,8 @@ spckword(char **s, int hist, int cmd, int ask)
 		fflush(shout);
 		zbeep();
 		x = getquery("nyae \t", 0);
+		if (cmd && x == 'n')
+		    pathchecked = path;
 	    } else
 		x = 'n';
 	} else
@@ -3170,6 +3180,10 @@ sepsplit(char *s, char *sep, int allownull, int heap)
     int n, sl;
     char *t, *tt, **r, **p;
 
+    /* Null string?  Treat as empty string. */
+    if (s[0] == Nularg && !s[1])
+	s++;
+
     if (!sep)
 	return spacesplit(s, allownull, heap, 0);
 
@@ -3218,7 +3232,7 @@ getshfunc(char *nam)
 char **
 subst_string_by_func(Shfunc func, char *arg1, char *orig)
 {
-    int osc = sfcontext, osm = stopmsg;
+    int osc = sfcontext, osm = stopmsg, old_incompfunc = incompfunc;
     LinkList l = newlinklist();
     char **ret;
 
@@ -3227,6 +3241,7 @@ subst_string_by_func(Shfunc func, char *arg1, char *orig)
 	addlinknode(l, arg1);
     addlinknode(l, orig);
     sfcontext = SFC_SUBST;
+    incompfunc = 0;
 
     if (doshfunc(func, l, 1))
 	ret = NULL;
@@ -3235,6 +3250,7 @@ subst_string_by_func(Shfunc func, char *arg1, char *orig)
 
     sfcontext = osc;
     stopmsg = osm;
+    incompfunc = old_incompfunc;
     return ret;
 }
 
@@ -4689,7 +4705,7 @@ addunprintable(char *v, const char *u, const char *uend)
 mod_export char *
 quotestring(const char *s, char **e, int instring)
 {
-    const char *u, *tt;
+    const char *u;
     char *v;
     int alloclen;
     char *buf;
@@ -4740,7 +4756,7 @@ quotestring(const char *s, char **e, int instring)
 	break;
     }
 
-    tt = quotestart = v = buf = zshcalloc(alloclen);
+    quotestart = v = buf = zshcalloc(alloclen);
 
     DPUTS(instring < QT_BACKSLASH || instring == QT_BACKTICK ||
 	  instring > QT_SINGLE_OPTIONAL,

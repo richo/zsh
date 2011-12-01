@@ -5,6 +5,7 @@ _acpitool
 _analyseplugin
 _brctl
 _chrt
+_cryptsetup
 _ethtool
 _fusermount
 _ionice
@@ -17,8 +18,10 @@ _mdadm
 _mii-tool
 _modutils
 _mondo
+_nmcli
 _pkgtool
 _rpmbuild
+_schedtool
 _sshfs
 _strace
 _tpb

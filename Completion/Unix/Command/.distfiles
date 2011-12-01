@@ -2,6 +2,7 @@ DISTFILES_SRC='
 .distfiles
 _a2ps
 _aap
+_adb
 _ant
 _antiword
 _apachectl
@@ -110,6 +111,7 @@ _last
 _ldd
 _less
 _links
+_ln
 _loadkeys
 _locate
 _look
@@ -139,6 +141,7 @@ _mysqldiff
 _ncftp
 _netcat
 _nice
+_nm
 _nmap
 _notmuch
 _npm
@@ -207,6 +210,7 @@ _subversion
 _sudo
 _surfraw
 _sysctl
+_systemctl
 _tar
 _tardy
 _tcpdump
@@ -224,6 +228,8 @@ _toilet
 _topgit
 _totd
 _tracepath
+_tree
+_twidge
 _twisted
 _unace
 _uname

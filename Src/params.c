@@ -655,7 +655,10 @@ createparamtable(void)
     char **new_environ;
     int  envsize;
 #endif
-    char **envp, **envp2, **sigptr, **t;
+#ifndef USE_SET_UNSET_ENV
+    char **envp;
+#endif
+    char **envp2, **sigptr, **t;
     char buf[50], *str, *iname, *ivalue, *hostnam;
     int  oae = opts[ALLEXPORT];
 #ifdef HAVE_UNAME
@@ -721,7 +724,11 @@ createparamtable(void)
     /* Now incorporate environment variables we are inheriting *
      * into the parameter hash table. Copy them into dynamic   *
      * memory so that we can free them if needed               */
-    for (envp = envp2 = environ; *envp2; envp2++) {
+    for (
+#ifndef USE_SET_UNSET_ENV
+	envp = 
+#endif
+	    envp2 = environ; *envp2; envp2++) {
 	if (split_env_string(*envp2, &iname, &ivalue)) {
 	    if (!idigit(*iname) && isident(iname) && !strchr(iname, '[')) {
 		if ((!(pm = (Param) paramtab->getnode(paramtab, iname)) ||
@@ -993,9 +1000,7 @@ mod_export int
 isident(char *s)
 {
     char *ss;
-    int ne;
 
-    ne = noeval;		/* save the current value of noeval     */
     if (!*s)			/* empty string is definitely not valid */
 	return 0;
 
@@ -3041,9 +3046,21 @@ mod_export void
 stdunsetfn(Param pm, UNUSED(int exp))
 {
     switch (PM_TYPE(pm->node.flags)) {
-	case PM_SCALAR: pm->gsu.s->setfn(pm, NULL); break;
-	case PM_ARRAY:  pm->gsu.a->setfn(pm, NULL); break;
-	case PM_HASHED: pm->gsu.h->setfn(pm, NULL); break;
+	case PM_SCALAR:
+	    if (pm->gsu.s->setfn)
+		pm->gsu.s->setfn(pm, NULL);
+	    break;
+
+	case PM_ARRAY:
+	    if (pm->gsu.a->setfn)
+		pm->gsu.a->setfn(pm, NULL);
+	    break;
+
+	case PM_HASHED:
+	    if (pm->gsu.h->setfn)
+		pm->gsu.h->setfn(pm, NULL);
+	    break;
+
 	default:
 	    if (!(pm->node.flags & PM_SPECIAL))
 	    	pm->u.str = NULL;
@@ -4188,6 +4205,7 @@ arrfixenv(char *s, char **t)
 int
 zputenv(char *str)
 {
+    DPUTS(!str, "Attempt to put null string into environment.");
 #ifdef USE_SET_UNSET_ENV
     /*
      * If we are using unsetenv() to remove values from the
