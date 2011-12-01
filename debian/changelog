@@ -1,3 +1,28 @@
+zsh (4.3.13-1) unstable; urgency=low
+
+  * New upstream release
+
+  [ Frank Terbeck ]
+  * [c63c0d79] Adding support for (un)markauto in _apt (Closes: #631795)
+  * [4a753fc3] Include _git patches from upstream (Closes: #630906)
+  * [fd222338] Support -F completion for aptitude (Closes: #632140)
+  * [7c61c918] Use hurd-any etc. instead of hurd-i386 (Closes: #634609)
+  * [fbaba904] Use one positive arch-spec instead of several negated
+    ones (Closes: #634609)
+  * [af2bb4fd] Removing upstream patches due to new release
+  * [ea0e8c35] at2quilt: Updating autotools patches
+
+  [ Michael Prokop ]
+  * [21e7021b] provide debian/gbp.conf for git-buildpackage and friends
+
+  [ Mitsuya Shibata ]
+  * [1e111f71] Add "tinfo" to --with-term-lib flag (Closes: #645112)
+
+  [ Ansgar Burchardt ]
+  * [add75037] _bts: Update list of tags (Closes: #641162)
+
+ -- Frank Terbeck <ft@bewatermyfriend.org>  Thu, 01 Dec 2011 10:17:56 +0100
+
 zsh (4.3.12-1) unstable; urgency=low
 
   [ Frank Terbeck ]
