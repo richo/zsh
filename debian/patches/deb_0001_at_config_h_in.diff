@@ -1,13 +1,13 @@
 Patch to generate `config.h.in'.
 
-Created by `at2quilt' on Thu, 02 Jun 2011 10:50:44 CEST.
+Created by `at2quilt' on Thu, 01 Dec 2011 10:03:31 CET.
 
 Note: Never *ever* refresh this patch. Things will break.
 
 Index: pkg-zsh/config.h.in
---- pkg-zsh.orig/config.h.in	2011-05-26 15:03:35.965237415 +0200
-+++ pkg-zsh/config.h.in	2011-06-02 10:50:44.000000000 +0200
-@@ -0,0 +1,1156 @@
+--- pkg-zsh.orig/config.h.in	2011-11-28 16:21:03.468012863 +0100
++++ pkg-zsh/config.h.in	2011-12-01 10:03:31.000000000 +0100
+@@ -0,0 +1,1162 @@
 +/* config.h.in.  Generated from configure.ac by autoheader.  */
 +
 +/***** begin user configuration section *****/
@@ -162,6 +162,9 @@ Index: pkg-zsh/config.h.in
 +
 +/* Define to 1 if you have the `cap_get_proc' function. */
 +#undef HAVE_CAP_GET_PROC
++
++/* Define to 1 if you have the `clock_gettime' function. */
++#undef HAVE_CLOCK_GETTIME
 +
 +/* Define to 1 if you have the <curses.h> header file. */
 +#undef HAVE_CURSES_H
@@ -343,6 +346,9 @@ Index: pkg-zsh/config.h.in
 +
 +/* Define to 1 if you have the `m' library (-lm). */
 +#undef HAVE_LIBM
++
++/* Define to 1 if you have the `rt' library (-lrt). */
++#undef HAVE_LIBRT
 +
 +/* Define to 1 if you have the `socket' library (-lsocket). */
 +#undef HAVE_LIBSOCKET
