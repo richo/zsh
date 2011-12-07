@@ -1,10 +1,13 @@
 zsh (4.3.13-1) unstable; urgency=low
 
   * New upstream release
+    + [45913f43] Allow closing of fd's not recorded by the shell
+      (Closes: #644179)
+    + [2938c58c] replace overlapping strcpy with memmove (Closes: #624497)
+    + Includes new _git implementation (Closes: #630906, #603503)
 
   [ Frank Terbeck ]
   * [c63c0d79] Adding support for (un)markauto in _apt (Closes: #631795)
-  * [4a753fc3] Include _git patches from upstream (Closes: #630906)
   * [fd222338] Support -F completion for aptitude (Closes: #632140)
   * [7c61c918] Use hurd-any etc. instead of hurd-i386 (Closes: #634609)
   * [fbaba904] Use one positive arch-spec instead of several negated
