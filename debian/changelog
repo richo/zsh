@@ -9,8 +9,7 @@ zsh (4.3.13-1) unstable; urgency=low
   [ Frank Terbeck ]
   * [c63c0d79] Adding support for (un)markauto in _apt (Closes: #631795)
   * [fd222338] Support -F completion for aptitude (Closes: #632140)
-  * [7c61c918] Use hurd-any etc. instead of hurd-i386 (Closes: #634609)
-  * [fbaba904] Use one positive arch-spec instead of several negated
+  * [fbaba904, 7c61c918] Use one positive arch-spec instead of several negated
     ones (Closes: #634609)
   * [af2bb4fd] Removing upstream patches due to new release
   * [ea0e8c35] at2quilt: Updating autotools patches
