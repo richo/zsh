@@ -155,7 +155,7 @@
   (exec 3<&-
   read foo <&-)
 1:'<&-' redirection
-?(eval):1: failed to close file descriptor 3: bad file descriptor
+*?\(eval\):1: failed to close file descriptor 3:*
 
   print foo >&-
 0:'>&-' redirection
@@ -163,7 +163,7 @@
   (exec >&-
   print foo)
 0:'>&-' with attempt to use closed fd
-?(eval):2: write error: bad file descriptor
+*?\(eval\):2: write error:*
 
   fn() { local foo; read foo; print $foo; }
   coproc fn

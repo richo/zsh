@@ -1,3 +1,33 @@
+2011-12-06  Peter Stephenson  <p.w.stephenson@ntlworld.com>
+
+	* unposted: Config/version.mk: release 4.3.14.
+
+2011-12-03  Peter Stephenson  <p.w.stephenson@ntlworld.com>
+
+	* 29940: Src/utils.c (metafy): null termination shouldn't
+	be applied to original buffer if not to be modified.
+
+	* From Stef VAN VLIERBERGHE: 29934: Src/lex.c (add): use of
+	uninitialised memory when lexer needed to reallocate token.
+
+2011-12-02  Peter Stephenson  <pws@csr.com>
+
+	* unposted: Test/B01cd.ztst: fix documentation for '*'
+	test output syntax.
+
+2011-12-01  Peter Stephenson  <p.w.stephenson@ntlworld.com>
+
+	* 29924: Test/A04redirect.ztst, Test/B01cd.ztst, Test/ztst.zsh:
+	add ability to match output of tests using patterns.
+
+2011-12-01  Peter Stephenson  <pws@csr.com>
+
+	* unposted: Completion/Unix/Command/_nm: also complete
+	directories.
+
+	* 29923: Test/A04redirect.ztst: work around variant message from
+	strerror() for invalid file descriptor.
+
 2011-11-30  Peter Stephenson  <p.w.stephenson@ntlworld.com>
 
 	* Config/version.mk: 4.3.13 release.
@@ -15627,5 +15657,5 @@
 
 *****************************************************
 * This is used by the shell to define $ZSH_PATCHLEVEL
-* $Revision: 1.5509 $
+* $Revision: 1.5517 $
 *****************************************************
