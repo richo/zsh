@@ -1,4 +1,4 @@
-zsh (4.3.13~ds1-1) unstable; urgency=low
+zsh (4.3.14~ds1-1) UNRELEASED; urgency=low
 
   * New upstream release
     + [45913f43] Allow closing of fd's not recorded by the shell
@@ -24,12 +24,12 @@ zsh (4.3.13~ds1-1) unstable; urgency=low
   * [add75037] _bts: Update list of tags (Closes: #641162)
 
   [ Axel Beckert ]
-  * Use generated orig.tar.gz ("debian source", hence "~ds") instead of
+  * Use generated orig.tar.bz2 ("debian source", hence "~ds") instead of
     upstream's tarball for now to fix some file regeneration issues,
     e.g. with man pages. (Closes: #646046)
     + Add dversionmangle to watch file
 
- -- Axel Beckert <abe@debian.org>  Wed, 07 Dec 2011 01:26:34 +0100
+ -- Axel Beckert <abe@debian.org>  Wed, 14 Dec 2011 01:43:23 +0100
 
 zsh (4.3.12-1) unstable; urgency=low
 
