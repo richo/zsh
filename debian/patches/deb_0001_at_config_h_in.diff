@@ -1,12 +1,12 @@
 Patch to generate `config.h.in'.
 
-Created by `at2quilt' on Thu, 01 Dec 2011 10:03:31 CET.
+Created by `at2quilt' on Wed, 14 Dec 2011 01:34:39 CET.
 
 Note: Never *ever* refresh this patch. Things will break.
 
-Index: pkg-zsh/config.h.in
---- pkg-zsh.orig/config.h.in	2011-11-28 16:21:03.468012863 +0100
-+++ pkg-zsh/config.h.in	2011-12-01 10:03:31.000000000 +0100
+Index: zsh/config.h.in
+--- zsh.orig/config.h.in	2011-12-13 17:44:56.160895103 +0100
++++ zsh/config.h.in	2011-12-14 01:34:38.000000000 +0100
 @@ -0,0 +1,1162 @@
 +/* config.h.in.  Generated from configure.ac by autoheader.  */
 +
