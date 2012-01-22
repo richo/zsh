@@ -10,12 +10,16 @@ ifeq (zsh-beta,$(package))
 snapshot_date := $(shell dpkg-parsechangelog | sed -n '/^Version: [0-9.][0-9.]*.*+20[0-9][0-9]\([0-9][0-9][0-9][0-9]\)-[0-9][0-9]*$$/ {s//\1/;p}')
 endif
 
-CFLAGS = -Wall -g
+-include /usr/share/dpkg/buildflags.mk
+export CFLAGS LDFLAGS
+H_LDFLAGS = $(LDFLAGS)
+
+CFLAGS += -Wall -g
 ifeq (zsh-beta,$(package))
 CFLAGS += -W
 endif
 
-CONFIGFLAGS = --prefix=/usr --mandir=/usr/share/man --bindir=/bin LDFLAGS="-Wl,--as-needed -g"
+CONFIGFLAGS = --prefix=/usr --mandir=/usr/share/man --bindir=/bin LDFLAGS="-Wl,--as-needed -g $(H_LDFLAGS)"
 
 ifeq (zsh-beta,$(package))
 CONFIGFLAGS += --program-suffix=-beta
