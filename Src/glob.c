@@ -422,13 +422,13 @@ insert(char *s, int checked)
 	    matchptr->_ctime = buf2.st_ctime;
 	    matchptr->_links = buf2.st_nlink;
 #ifdef GET_ST_ATIME_NSEC
-	    matchptr->_ansec = GET_ST_ATIME_NSEC(buf);
+	    matchptr->_ansec = GET_ST_ATIME_NSEC(buf2);
 #endif
 #ifdef GET_ST_MTIME_NSEC
-	    matchptr->_mnsec = GET_ST_MTIME_NSEC(buf);
+	    matchptr->_mnsec = GET_ST_MTIME_NSEC(buf2);
 #endif
 #ifdef GET_ST_CTIME_NSEC
-	    matchptr->_cnsec = GET_ST_CTIME_NSEC(buf);
+	    matchptr->_cnsec = GET_ST_CTIME_NSEC(buf2);
 #endif
 	}
 	matchptr++;
@@ -1530,6 +1530,8 @@ zglob(LinkList list, LinkNode np, int nountok)
 			    g_units = TT_MONTHS, ++s;
 			else if (*s == 's')
 			    g_units = TT_SECONDS, ++s;
+			else if (*s == 'd')
+			    ++s;
 		    }
 		    /* See if it's greater than, equal to, or less than */
 		    if ((g_range = *s == '+' ? 1 : *s == '-' ? -1 : 0))

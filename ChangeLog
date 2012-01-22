@@ -1,3 +1,117 @@
+2011-12-17  Peter Stephenson  <p.w.stephenson@ntlworld.com>
+
+	* unposted: release 4.3.15.
+
+2011-12-16  Peter Stephenson  <pws@csr.com>
+
+	* Simon Olofsson: 30028: Completion/Unix/Command/_subversion:
+	fix matching of subversion help text.
+
+2011-12-14  Mikael Magnusson  <mikachu@gmail.com>
+
+	* 30021: Completion/Zsh/Type/_globquals: Add d flag (see 29991),
+	show what unit the digits are entered in as a hint that the
+	default is also days.
+
+	* 29783: Completion/Debian/Command/_update-alternatives: Add
+	more options.
+
+2011-12-13  Mikael Magnusson  <mikachu@gmail.com>
+
+	* 29998: Completion/Unix/Command/_git: fix a typo (--rerbose).
+
+	* 30019: Completion/Unix/Command/_tar: fix parsing of argument
+	to -C.
+
+2011-12-13  Barton E. Schaefer  <schaefer@zsh.org>
+
+	* 30020: Functions/Prompts/promptinit: prevent prompt_opts and
+	zle_highlight from leaking out of prompt_preview_theme.
+
+	* 30012: Completion/Base/Core/_main_complete,
+	Completion/Base/Utility/_arguments,
+	Completion/Base/Utility/_values, Completion/Zsh/Command/_zle,
+	Doc/Zsh/compsys.yo: add $state_descr which parallels the $state
+	array in the same way that $context does, to make the "message"
+	part of each _arguments "optarg" specification available to
+	the caller's state handler.  Used in _zle as the description
+	passed to _wanted.
+
+2011-12-12  Peter Stephenson  <p.w.stephenson@ntlworld.com>
+
+	* 30000 plus a couple of comments: Src/exec.c: Better POSIXJOBS
+	behaviour: don't restore default behaviour for SIGTTOU etc. if
+	we're still doing job handling, and only continue with job
+	handling if this is a (...) subshell.
+
+2011-12-11  Peter Stephenson  <p.w.stephenson@ntlworld.com>
+
+	* discussed in 29984: Doc/Zsh/compsys.yo: use m+7 for files
+	"more than a week old" since w+1 is a bit counterintuitive.
+
+	* 29991: Doc/Zsh/expn.yo, Src/glob.c: allow explicit 'd' for
+	days in time qualifiers.
+
+2011-12-10  Mikael Magnusson  <mikachu@gmail.com>
+
+	* 29962: Completion/Unix/Command/_ssh: Actually return ret.
+
+	* 29961: Completion/Unix/Command/_ssh: Extend option completion.
+
+2011-12-10  Peter Stephenson  <p.w.stephenson@ntlworld.com>
+
+	* GI: 29977: Completion/Linux/Command/_modutils: caching and
+	function definition fixes.
+
+2011-12-09  Simon Ruderich  <simon@ruderich.org>
+
+	* 29918: Completion: Add new _remote_files() helper and use it to
+	reduce code duplication.
+
+	* 29917: Completion/Unix/Command/_ssh: Tabs to spaces.
+
+2011-12-09  Mikael Magnusson  <mikachu@gmail.com>
+
+	* unposted: Doc/Zsh/compsys.yo: Remove duplicated 'the'.
+
+	* 29409: Completion/X/Command/_x_utils: Add completion for xprop and
+	xlsatoms.
+
+2011-12-09  Peter Stephenson  <pws@csr.com>
+
+	* unposted: Completion/compinit: add NO_ignoreclosebraces to
+	options needed in completion.
+
+	* users/16614: config.guess, config.sub: update from automake
+	1.11.1.
+
+2011-12-09  Mikael Magnusson  <mikachu@gmail.com>
+
+	* 29876: Completion/Unix/Command/_getent: Update getent completion
+	to work when additional output comes after the databases.
+
+2011-12-08  Peter Stephenson  <p.w.stephenson@ntlworld.com>
+
+	* 29955 with bits pointed out by Mikael and Bart:
+	Doc/Zsh/grammar.yo, Doc/Zsh/options.yo, Src/lex.c,
+	Src/options.c, Src/zsh.h, Test/E01options.ztst: add
+	IGNORE_CLOSE_BRACES option.
+
+2011-12-08  Peter Stephenson  <pws@csr.com>
+
+	* 29928: Test/A04redirect.ztst: belated commit to
+	fix OpenBSD test failure.
+
+2011-12-07  Peter Stephenson  <p.w.stephenson@ntlworld.com>
+
+	* unposted: Etc/version.mk: update version to 4.3.14-dev-0 to
+	avoid installs clashing with release.
+
+2011-12-07  Oliver Kiddle  <okiddle@yahoo.co.uk>
+
+	* 29952: Src/glob.c: fix cut'n'paste error in nanosecond
+	timestamp support
+
 2011-12-06  Peter Stephenson  <p.w.stephenson@ntlworld.com>
 
 	* unposted: Config/version.mk: release 4.3.14.
@@ -2098,11 +2212,11 @@
 
 	* users/15314: Doc/Zsh/expn.yo: redescribe process substitution.
 
-	* users/15310 (bits applying to process substitution with
+	* users/15301 (bits applying to process substitution with
 	redirection): Src/exec.c: make redirection process substitution
 	attach to the appropriate process group.
 
-	* users/15200: pass foreground signals on to process
+	* users/15300: pass foreground signals on to process
 	substitutions in current shell
 
 2010-08-22  Barton E. Schaefer  <schaefer@zsh.org>
@@ -15657,5 +15771,5 @@
 
 *****************************************************
 * This is used by the shell to define $ZSH_PATCHLEVEL
-* $Revision: 1.5517 $
+* $Revision: 1.5544 $
 *****************************************************
