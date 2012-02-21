@@ -1,3 +1,25 @@
+zsh (4.3.16-1) unstable; urgency=low
+
+  * New upstream release
+
+  [ Frank Terbeck ]
+  * [1a330ad7] 30079: Src/params.c: Restore `LC_ALL' when setting
+    `LANG'. (Closes: #654225)
+  * [756f17a7] A.Costa: grammar.yo, ChangeLog-3.1: Fix typo to
+    "definition" (Closes: #658223)
+
+  [ Pierre Chifflier ]
+  * [53f9140d] Enable hardening options (Closes: #644400)
+
+  [ Michael Prokop ]
+  * [340a3b41] Raise upstream-branch version in gbp.conf to zsh-4.3.15
+
+  [ Axel Beckert ]
+  * [baf81ea9] Raise upstream-branch version in gbp.conf to zsh-4.3.16
+  * [51a77e60] Add stamp-h.in to extend-diff-ignore
+
+ -- Axel Beckert <abe@debian.org>  Tue, 21 Feb 2012 22:37:22 +0100
+
 zsh (4.3.15-1) unstable; urgency=low
 
   * New upstream release
