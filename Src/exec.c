@@ -2174,8 +2174,8 @@ addvars(Estate state, Wordcode pc, int addflags)
 	    vl = ecgetlist(state, WC_ASSIGN_NUM(ac), EC_DUPTOK, &htok);
 
 	if (vl && htok) {
-	    prefork(vl, (isstr ? (PF_SINGLE|PF_ASSIGN) :
-			 PF_ASSIGN));
+	    prefork(vl, (isstr ? (PREFORK_SINGLE|PREFORK_ASSIGN) :
+			 PREFORK_ASSIGN));
 	    if (errflag) {
 		state->pc = opc;
 		return;
@@ -2487,6 +2487,11 @@ execcmd(Estate state, int input, int output, int how, int last1)
 		 * with the zsh style.
 		 */
 		while (next && *next == '-' && strlen(next) >= 2) {
+		    if (!firstnode(args)) {
+			zerr("exec requires a command to execute");
+			errflag = lastval = 1;
+			return;
+		    }
 		    uremnode(args, firstnode(args));
 		    if (!strcmp(next, "--"))
 			break;
@@ -2499,6 +2504,11 @@ execcmd(Estate state, int input, int output, int how, int last1)
 				/* position on last non-NULL character */
 				cmdopt += strlen(cmdopt+1);
 			    } else {
+				if (!firstnode(args)) {
+				    zerr("exec requires a command to execute");
+				    errflag = lastval = 1;
+				    return;
+				}
 				if (!nextnode(firstnode(args))) {
 				    zerr("exec flag -a requires a parameter");
 				    errflag = lastval = 1;
@@ -2521,7 +2531,8 @@ execcmd(Estate state, int input, int output, int how, int last1)
 			    return;
 			}
 		    }
-		    next = (char *) getdata(nextnode(firstnode(args)));
+		    if (firstnode(args) && nextnode(firstnode(args)))
+			next = (char *) getdata(nextnode(firstnode(args)));
 		}
 		if (exec_argv0) {
 		    char *str, *s;
@@ -2541,7 +2552,7 @@ execcmd(Estate state, int input, int output, int how, int last1)
     }
 
     /* Do prefork substitutions */
-    esprefork = (assign || isset(MAGICEQUALSUBST)) ? PF_TYPESET : 0;
+    esprefork = (assign || isset(MAGICEQUALSUBST)) ? PREFORK_TYPESET : 0;
     if (args && htok)
 	prefork(args, esprefork);
 

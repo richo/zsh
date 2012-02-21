@@ -200,6 +200,7 @@ _slrn
 _socket
 _sort
 _spamassassin
+_sqlite
 _sqsh
 _ssh
 _stgit
@@ -239,6 +240,7 @@ _unison
 _units
 _user_admin
 _uzbl
+_vcsh
 _vim
 _vorbis
 _vorbiscomment

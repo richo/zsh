@@ -1,3 +1,227 @@
+2012-02-19  Peter Stephenson  <p.w.stephenson@ntlworld.com>
+
+	* unposted: Etc/Config.yo, Completion/X/Type/.distfiles,
+	Test/.distfiles: 4.3.16.
+
+2012-02-15  Peter Stephenson  <p.w.stephenson@ntlworld.com>
+
+	* 30231 plus Mikael's change in 30232: NEWS, README, Etc/FAQ.yo:
+	updates for 4.3.16.
+
+2012-02-14  Oliver Kiddle  <opk@zsh.org>
+
+	* 30198: Completion/Unix/Command/_sudo, Doc/Zsh/compsys.yo:
+	fix environ style lookup to be done in conventional manner
+
+	* Mikael: Completion/Debian/Command/_dpkg: fix dpkg-deb
+	completion broken by 30199
+
+2012-02-14  Peter Stephenson  <pws@csr.com>
+
+	* users/16760: Functions/Zle/url-quote-magic: make reply
+	local for the benefit of styles.
+
+2012-02-13  Frank Terbeck  <ft@bewatermyfriend.org>
+
+	* 30214: Functions/Prompts/prompt_redhat_setup: Fix quoting in
+	`redhat' prompt.
+
+2012-02-12  Peter Stephenson  <p.w.stephenson@ntlworld.com>
+
+	* 30203 (plus rename PF_ flags to PREFORK_): Src/exec.c,
+	Src/glob.c, Src/subst.c, Src/zsh.h, Test/D04parameter.ztst:
+	Pass sh-wordsplitting instructions to nested parameter
+	substitution by flags, avoiding side effects of explicitly
+	changing the option.
+
+2012-02-11  Mikael Magnusson  <mikachu@gmail.com>
+
+	* 30206: Completion/Unix/Command/_ldd: Fix ldd completion broken by
+	previous commit.
+
+2012-02-10  Oliver Kiddle  <opk@zsh.org>
+
+	* 30199: Completion/Debian/Command/_pbuilder,
+	Completion/Darwin/Command/_defaults, Completion/Darwin/Command/_fink,
+	Completion/Darwin/Command/_hdiutil, Completion/Debian/Command/_dak,
+	Completion/Debian/Command/_debdiff, Completion/Debian/Command/_dpkg,
+	Completion/Debian/Command/_linda, Completion/Debian/Command/_lintian,
+	Completion/Debian/Command/_piuparts,
+	Completion/Linux/Command/_modutils,
+	Completion/Mandriva/Command/_urpmi,
+	Completion/Unix/Command/_bittorrent,
+	Completion/Unix/Command/_bogofilter, Completion/Unix/Command/_cdrdao,
+	Completion/Unix/Command/_cplay, Completion/Unix/Command/_git,
+	Completion/Unix/Command/_hg, Completion/Unix/Command/_ldd,
+	Completion/Unix/Command/_metaflac, Completion/Unix/Command/_pax,
+	Completion/Unix/Command/_rubber, Completion/Unix/Command/_sisu,
+	Completion/Unix/Command/_texinfo, Completion/Unix/Command/_vim,
+	Completion/Unix/Command/_vorbiscomment,
+	Completion/Unix/Command/_xmms2:
+	add (-.) to many completion _files globs
+
+	* 30197: Completion/Unix/Command/_subversion: complete changelists
+
+	* 30177: Completion/X/Command/_xterm,
+	Completion/X/Type/_xft_fonts: completion for fontconfig fonts
+
+2012-02-09  Barton E. Schaefer  <schaefer@zsh.org>
+
+	* 30193: ChangeLog Src/Zle/compcore.c: remnulargs() after poking
+	into string in case length changes.
+
+2012-02-08  Peter Stephenson  <pws@csr.com>
+
+	* Timothy Redaelli: 30187: Src/hist.c: file name manipulations
+	in history can return NULL if HAVE_CANONICALIZE_FILE_NAME.
+
+2012-02-07  Peter Stephenson  <pws@csr.com>
+
+	* Holger Macht via Ismail: 30185: Src/Zle/complete.mdd: add
+	missing openSUSE file locations.
+
+2012-02-05  Peter Stephenson  <p.w.stephenson@ntlworld.com>
+
+	* 30127: Src/builtin.c: forbid executing history lines via fc in
+	the wrong order.
+
+2012-02-03  Peter Stephenson  <pws@csr.com>
+
+	* Mariusz Glebocki: 30179: Completion/Unix/Type/_services:
+	suppress stderr for service list.
+
+2012-02-01  Frank Terbeck  <ft@bewatermyfriend.org>
+
+	* A.Costa: unposted: Doc/Zsh/grammar.yo, Etc/ChangeLog-3.1: Fix
+	typo to "definition".
+
+2012-01-31  Peter Stephenson  <pws@csr.com>
+
+	* seiler via Ismail: 30174: Completion/Unix/Command/_osc,
+	Completion/openSUSE/Command/_osc: update.
+
+	* Felipe: 30158: Test/.distfiles, Test/compgentest,
+	Test/Y04compgen.ztst: compgen test is not useful with current
+	bashcopmpinit.
+
+2012-01-29  Peter Stephenson  <p.w.stephenson@ntlworld.com>
+
+	*  Richard Hartmann: 30140: Completion/X/Command/_mplayer:
+	whitespace fix.
+
+	* Felipe Contreras: 30131, 30132, 30133, 30134, 30135,
+	30136, 30137: Completion/bashcompinit: various improvements to
+	bash-like behaviour.
+
+2012-01-23  Peter Stephenson  <pws@csr.com>
+
+	* Ben: 30118: Completion/Unix/Command/_sqlite,
+	Completion/Unix/Command/.distfiles: new sqlite completion.
+
+2012-01-22  Peter Stephenson  <p.w.stephenson@ntlworld.com>
+
+	* Ben: 30117 (moved directory): Completion/X/Command/_xclip,
+	Completion/X/Command/.distfiles: new completion.
+
+2012-01-19  Frank Terbeck  <ft@bewatermyfriend.org>
+
+	* 30114: Functions/VCS_Info/VCS_INFO_check_com: Remove a
+	superfluous stat().
+
+2012-01-16  Frank Terbeck  <ft@bewatermyfriend.org>
+
+	* 30111: Src/exec.c: Fix segfaults with exec options.
+
+2012-01-15  Peter Stephenson  <p.w.stephenson@ntlworld.com>
+
+	* Richard Hartmann: 30110: Completion/Unix/Command/_vcsh,
+	Completion/Unix/Command/.distfiles: new completion.
+
+2012-01-09  Peter Stephenson  <p.w.stephenson@ntlworld.com>
+
+	* Stepan Koltsov: 30105: Completion/Unix/Command/_stgit: fix
+	delete completion.
+
+2012-01-08  Peter Stephenson  <p.w.stephenson@ntlworld.com>
+
+	* users/16711: Completion/Unix/Type/_path_commands: try to take
+	account of PATH_DIRS option in command completion.
+
+	* 30101: Doc/Zsh/options.yo, Src/hashtable.c, Src/options.c,
+	Src/zsh.h: add HASH_EXECUTABLES_ONLY option, off by default to
+	avoid problems with huge paths and remote directories.
+
+2012-01-07  Peter Stephenson  <p.w.stephenson@ntlworld.com>
+
+	* 30098: Jun T.: Src/params.c: more minimal alternative to
+	30079, don't set LANG if LC_ALL set.
+
+2012-01-06  Peter Stephenson  <pws@csr.com>
+
+	* Src/Modules/pcre.c (cond_pcre_match): unposted: fix (harmless)
+	warning with uninitialised variable.
+
+2012-01-05  Peter Stephenson  <p.w.stephenson@ntlworld.com>
+
+	* Christian Höltje: 30087: Functions/Prompts/promptinit: remove
+	any hooks for a prompt theme when removing it.
+
+	* 30084: Doc/Zsh/zle.yo, Src/init.c, Src/Zle/zle_main.c,
+	Src/Zle/zle_refresh.c, Src/Zle/zle_thingy.c: `zle -T tc func'
+	defines function to be used insted of termcap output for
+	testing.
+
+	* 30081: Completion/Base/Core/_main_complete: remove necessity
+	to have IGNORE_CLOSE_BRACES unset when loaded.
+
+2012-01-04  Frank Terbeck  <ft@bewatermyfriend.org>
+
+	* 30079: Src/params.c: Restore `LC_ALL' when setting `LANG'.
+
+2012-01-04  Peter Stephenson  <p.w.stephenson@ntlworld.com>
+
+	* 30084: Src/init.c: zsfree(argzero) before we set it again
+	following ztrdup() in parseargs().
+
+2012-01-02  Barton E. Schaefer  <schaefer@zsh.org>
+
+	* 30073 (plus comment): Src/Zle/zle_main.c: use queue_signals()
+	around critical first call to zrefresh() after zleactive = 1, to
+	prevent adjustwinsize() loop reported on FreeBSD.
+
+2011-12-30  Frank Terbeck  <ft@bewatermyfriend.org>
+
+	* 30048: Test/C02cond.ztst: Avoid [[ -N ... ]] on file-systems
+	mounted `noatime', if possible.
+
+	* 30046: Functions/VCS_Info/Backends/VCS_INFO_get_data_svn: Fix
+	support for subversion version 1.7.
+
+2011-12-27  Barton E. Schaefer  <schaefer@zsh.org>
+
+	* 30069: Doc/Zsh/options.yo: replace empty parens with
+	LPAR()RPAR().
+
+2011-12-21  Peter Stephenson  <p.w.stephenson@ntlworld.com>
+
+	* 30041: Src/subst.c: the offset hack to make
+	${foo:offset:length} bash compatible with positional parameters
+	doesn't apply when we're indexing into characters of one
+	positional parameter.
+
+	* T.C. Hollingsworth: 30036: Completion/Unix/Command/_systemctl:
+	new arguments.
+
+2011-12-20  Barton E. Schaefer  <schaefer@zsh.org>
+
+	* 30033: Src/Zle/zle_keymap.c: silence valgrind warnings about
+	uninitialized values.
+
+2011-12-19  Peter Stephenson  <pws@csr.com>
+
+	* unposted: Config/version.mk: update version to 4.3.15-dev-0 to
+	avoid dev version clashing with installation.
+
 2011-12-17  Peter Stephenson  <p.w.stephenson@ntlworld.com>
 
 	* unposted: release 4.3.15.
@@ -15771,5 +15995,5 @@
 
 *****************************************************
 * This is used by the shell to define $ZSH_PATCHLEVEL
-* $Revision: 1.5544 $
+* $Revision: 1.5590 $
 *****************************************************

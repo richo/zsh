@@ -3788,6 +3788,10 @@ static void
 setlang(char *x)
 {
     struct localename *ln;
+    char *x2;
+
+    if ((x2 = getsparam("LC_ALL")) && *x2)
+	return;
 
     /*
      * Set the global locale to the value passed, but override

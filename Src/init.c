@@ -558,6 +558,19 @@ static char *tccapnams[TC_COUNT] = {
     "ku", "kd", "kl", "kr", "sc", "rc", "bc", "AF", "AB"
 };
 
+/**/
+mod_export char *
+tccap_get_name(int cap)
+{
+    if (cap >= TC_COUNT) {
+#ifdef DEBUG
+	dputs("name of invalid capability %d requested", cap);
+#endif
+	return "";
+    }
+    return tccapnams[cap];
+}
+
 /* Initialise termcap */
 
 /**/
@@ -978,6 +991,7 @@ setupshin(char *runscript)
 	    exit(127);
 	}
 	scriptfilename = sfname;
+	zsfree(argzero); /* ztrdup'd in parseargs */
 	argzero = runscript;
     }
     /*

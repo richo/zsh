@@ -567,12 +567,12 @@ tt(IGNORE_BRACES), this option does not disable brace expansion.
 For example, with both options unset a function may be defined
 in the following fashion:
 
-example(args() { echo $# })
+example(args+LPAR()RPAR() { echo $# })
 
 while if either option is set, this does not work and something
 equivalent to the following is required:
 
-example(args() { echo $#; })
+example(args+LPAR()RPAR() { echo $#; })
 
 )
 pindex(KSH_GLOB)
@@ -1154,6 +1154,20 @@ item(tt(HASH_DIRS) <D>)(
 Whenever a command name is hashed, hash the directory containing it,
 as well as all directories that occur earlier in the path.
 Has no effect if neither tt(HASH_CMDS) nor tt(CORRECT) is set.
+)
+pindex(HASH_EXECUTABLES_ONLY)
+pindex(NO_HASH_EXECUTABLES_ONLY)
+pindex(HASHEXECUTABLESONLY)
+pindex(NOHASHEXECUTABLESONLY)
+cindex(hashing, of executables)
+cindex(executables, hashing)
+item(tt(HASH_EXECUTABLES_ONLY))(
+When hashing commands because of tt(HASH_COMMANDS), check that the
+file to be hashed is actually an executable.  This option
+is unset by default as if the path contains a large number of commands,
+or consists of many remote files, the additional tests can take
+a long time.  Trial and error is needed to show if this option is
+beneficial.
 )
 pindex(MAIL_WARNING)
 pindex(NO_MAIL_WARNING)

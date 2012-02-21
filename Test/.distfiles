@@ -1,7 +1,6 @@
 DISTFILES_SRC='
 .cvsignore
 .distfiles
-compgentest
 A01grammar.ztst
 A02alias.ztst
 A03quoting.ztst
@@ -40,10 +39,10 @@ V03mathfunc.ztst
 V04features.ztst
 V05styles.ztst
 V06parameter.ztst
+V07pcre.ztst
 Y01completion.ztst
 Y02compmatch.ztst
 Y03arguments.ztst
-Y04compgen.ztst
 comptest
 runtests.zsh
 ztst.zsh
