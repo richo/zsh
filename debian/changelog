@@ -2,10 +2,14 @@ zsh (4.3.17-1) unstable; urgency=low
 
   * New upstream release
 
+  [ Richard Hartmann ]
   * [6f601c9] Bump Standards-Version to 3.9.3 (no changes)
   * [fa4e533] Make debian/gbp.conf dynamic
 
- -- Richard Hartmann <richih.mailinglist@gmail.com>  Mon, 27 Feb 2012 22:03:03 +0100
+  [ Axel Beckert ]
+  * [0a9039dc] Add Richard Hartmann to Uploaders
+
+ -- Axel Beckert <abe@debian.org>  Wed, 29 Feb 2012 00:35:54 +0100
 
 zsh (4.3.16-1) unstable; urgency=low
 
