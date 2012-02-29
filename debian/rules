@@ -11,7 +11,7 @@ snapshot_date := $(shell dpkg-parsechangelog | sed -n '/^Version: [0-9.][0-9.]*.
 endif
 
 -include /usr/share/dpkg/buildflags.mk
-export CFLAGS LDFLAGS
+export CFLAGS LDFLAGS CPPFLAGS
 H_LDFLAGS = $(LDFLAGS)
 
 CFLAGS += -Wall -g
