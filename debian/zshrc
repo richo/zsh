@@ -85,4 +85,4 @@ zstyle ':completion:*:sudo:*' command-path /usr/local/sbin \
                                            /usr/X11R6/bin
 
 (( ${+aliases[run-help]} )) && unalias run-help
-autoload run-help
+autoload -Uz run-help
