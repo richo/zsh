@@ -1,3 +1,9 @@
+zsh (4.3.17-1~psych0tik_lucid.1) unstable; urgency=low
+
+  * psych0tik build
+
+ -- Rich Healey <richo@psych0tik.net>  Thu, 29 Mar 2012 18:30:43 -0700
+
 zsh (4.3.17-1) unstable; urgency=low
 
   * New upstream release
